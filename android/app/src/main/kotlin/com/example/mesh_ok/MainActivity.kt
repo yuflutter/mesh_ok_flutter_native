@@ -34,20 +34,16 @@ class MainActivity : FlutterActivity() {
         flutterChannel.setMethodCallHandler { call, result ->
             log(call.method + "()")
             GlobalScope.launch {
-//          runBlocking {
-                launch {
-                    try {
-                        when (call.method) {
-                            "init" -> init(result)
-                            else -> p2pController.handleMethod(call, result)
-                        }
-                    } catch (e: Exception) {
-                        loge(e)
-                        result.error("$e", null, null)
+                try {
+                    when (call.method) {
+                        "init" -> init(result)
+                        else -> p2pController.handleMethod(call, result)
                     }
+                } catch (e: Exception) {
+                    loge(e)
+                    result.error("$e", null, null)
                 }
             }
-
         }
     }
 
