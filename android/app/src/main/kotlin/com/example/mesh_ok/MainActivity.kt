@@ -15,14 +15,11 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
 class MainActivity : FlutterActivity() {
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
@@ -34,6 +31,7 @@ class MainActivity : FlutterActivity() {
         flutterChannel.setMethodCallHandler { call, result ->
             log(call.method + "()")
             GlobalScope.launch {
+//          lifecycleScope.launch {
                 try {
                     when (call.method) {
                         "init" -> init(result)
@@ -70,10 +68,10 @@ class MainActivity : FlutterActivity() {
             if (notGranted(p)) requiredPermissions.add(p)
         }
 
-        return if (requiredPermissions.isEmpty()) {
-            true
+        if (requiredPermissions.isEmpty()) {
+            return true
         } else {
-            suspendCoroutine { continuation ->
+            return suspendCoroutine { continuation ->
                 requestPermissionsResult = continuation
                 ActivityCompat.requestPermissions(this, requiredPermissions.toTypedArray(), 0)
             }
@@ -99,12 +97,13 @@ class MainActivity : FlutterActivity() {
             return true
         } else {
             suspendCoroutine { continuation ->
-                requestWifiResult = continuation
+                requestActivityResult = continuation
                 startActivityForResult(
                     Intent(Settings.ACTION_WIFI_SETTINGS), requestWifiCode
                 )
             }
-            return isEnabled()
+            if (isEnabled()) return true
+            else throw Exception("WiFi is not turned on!")
         }
     }
 
@@ -117,29 +116,35 @@ class MainActivity : FlutterActivity() {
             return true
         } else {
             suspendCoroutine { continuation ->
-                requestLocationResult = continuation
+                requestActivityResult = continuation
                 startActivityForResult(
                     Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), requestLocationCode
                 )
             }
-            return isEnabled()
+            if (isEnabled()) return true
+            else throw Exception("Location is not turned on!")
         }
     }
 
+    // Почему-то этот колбэк не срабатывает
     override fun onActivityResult(
         requestCode: Int, resultCode: Int, data: Intent?, caller: ComponentCaller
     ) {
+        log("onActivityResult()")
         super.onActivityResult(requestCode, resultCode, data, caller)
-        when (requestCode) {
-            requestWifiCode -> requestWifiResult?.resume(Unit)
-            //throw Exception("WiFi is not turned on!")
-            requestLocationCode -> requestLocationResult?.resume(Unit)
-            //throw Exception("WiFi is not turned on!")
-        }
+//        when (requestCode) {
+//            requestWifiCode -> requestWifiResult?.resume(Unit)
+//            requestLocationCode -> requestLocationResult?.resume(Unit)
+//        }
     }
 
     public override fun onResume() {
+        log("onResume()")
         super.onResume()
+        if (requestActivityResult != null) {
+            requestActivityResult!!.resume(Unit)
+            requestActivityResult = null
+        }
         p2pController.onResume()
     }
 
