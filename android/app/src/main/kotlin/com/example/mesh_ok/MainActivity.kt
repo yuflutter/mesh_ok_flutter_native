@@ -8,7 +8,6 @@ import android.location.LocationManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -46,9 +45,13 @@ class MainActivity : FlutterActivity() {
     }
 
     private suspend fun init(result: MethodChannel.Result) {
-        log("requestPermissions() => " + requestPermissions())
-        log("requestWifi() => " + requestWifi())
-        log("requestLocation() => " + requestLocation())
+        requestPermissions() // здесь выбрасывается exception, если разрешения не выданы
+        requestWifi() // WiFi включается долго, поэтому проверяем результат не здесь, а в конце
+        requestLocation()
+        var err = ""
+        if (wifiNotEnabled()) err += "WiFi is not turned on!\n"
+        if (locationNotEnabled()) err += "Location is not turned on!\n"
+        if (err.isNotEmpty()) throw Exception(err)
         Global.p2pController.init(result)
     }
 
@@ -85,38 +88,39 @@ class MainActivity : FlutterActivity() {
         if (grantResults.reduce { acc, v -> acc * v } == 0) {
             Global.requestPermissionsResult?.resume(Unit)
         } else {
-            Global.requestPermissionsResult?.resumeWithException(Exception("not all required permissions have been granted!"))
+            Global.requestPermissionsResult?.resumeWithException(Exception("Not all required permissions have been granted"))
+
         }
     }
+
+    private fun wifiNotEnabled(): Boolean =
+        !(context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager).isWifiEnabled
 
     private suspend fun requestWifi() {
-        fun notEnabled(): Boolean =
-            !(context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager).isWifiEnabled
-
-        if (notEnabled()) {
+        if (wifiNotEnabled()) {
             suspendCoroutine { continuation ->
-                Global.requestActivityResult = continuation
+                Global.requestSettingsResult = continuation
                 startActivityForResult(
-                    Intent(Settings.ACTION_WIFI_SETTINGS), Global.requestWifiCode
+                    Intent(Settings.ACTION_WIFI_SETTINGS), 0, // Global.requestWifiCode
                 )
             }
-            if (notEnabled()) throw Exception("WiFi is not turned on!")
         }
     }
 
+    private fun locationNotEnabled(): Boolean =
+        !(context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager).isProviderEnabled(
+            LocationManager.GPS_PROVIDER
+        )
+
     private suspend fun requestLocation() {
-        fun notEnabled(): Boolean =
-            !(context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager).isProviderEnabled(
-                LocationManager.GPS_PROVIDER
-            )
-        if (notEnabled()) {
+        if (locationNotEnabled()) {
             suspendCoroutine { continuation ->
-                Global.requestActivityResult = continuation
+                Global.requestSettingsResult = continuation
                 startActivityForResult(
-                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), Global.requestLocationCode
+                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
+                    0, // Global.requestLocationCode
                 )
             }
-            if (notEnabled()) throw Exception("Location is not turned on!")
         }
     }
 
@@ -135,9 +139,9 @@ class MainActivity : FlutterActivity() {
     public override fun onResume() {
         log("onResume()")
         super.onResume()
-        if (Global.requestActivityResult != null) {
-            Global.requestActivityResult!!.resume(Unit)
-            Global.requestActivityResult = null
+        if (Global.requestSettingsResult != null) {
+            Global.requestSettingsResult!!.resume(Unit)
+            Global.requestSettingsResult = null
         }
         Global.p2pController.onResume()
     }
@@ -146,16 +150,4 @@ class MainActivity : FlutterActivity() {
         super.onPause()
         Global.p2pController.onPause()
     }
-}
-
-fun log(msg: String) {
-    Log.d(flutterChannelName, msg)
-}
-
-fun loge(err: Throwable) {
-    Log.e(flutterChannelName, err.toString())
-}
-
-fun loge(err: String) {
-    Log.e(flutterChannelName, err)
 }

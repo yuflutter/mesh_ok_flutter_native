@@ -39,7 +39,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
         };
       });
 
-      // await refreshAll();
+      await refreshAll();
 
       // if (state.p2pInfo?.isConnected == true) {
       //   tryToOpenSocket();
@@ -52,10 +52,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   Future<void> refreshAll() async {
-    await Future.wait([
-      _discoverPeers(),
-      _getGroupInfo(),
-    ]);
+    await Future.wait([_discoverPeers(), _getGroupInfo()]);
   }
 
   Future<void> _discoverPeers() async {

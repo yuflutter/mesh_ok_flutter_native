@@ -7,8 +7,8 @@ class Peer extends NativeDto {
   final String deviceName;
   final PeerStatus status;
 
-  Peer.fromDto(Map<Object?, Object?> dto)
-      : deviceName = dto['deviceName'] as String,
-        status = PeerStatus.fromId(dto['status'] as num),
-        super.fromDto(dto);
+  Peer.fromDto(super.dto)
+    : deviceName = dto['deviceName'] as String,
+      status = PeerStatus.fromId(dto['status'] as num),
+      super.fromDto();
 }
