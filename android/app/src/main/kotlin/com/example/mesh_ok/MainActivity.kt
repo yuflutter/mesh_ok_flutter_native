@@ -26,16 +26,16 @@ class MainActivity : FlutterActivity() {
         val flutterChannel =
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, flutterChannelName)
 
-        p2pController = P2pController(this, flutterChannel)
+        Global.p2pController = P2pController(this, flutterChannel)
 
         flutterChannel.setMethodCallHandler { call, result ->
             log(call.method + "()")
             GlobalScope.launch {
-//          lifecycleScope.launch {
+//          lifecycleScope.launch { // Почему-то работает плохо, иногда виснут suspendCoroutine()
                 try {
                     when (call.method) {
                         "init" -> init(result)
-                        else -> p2pController.handleMethod(call, result)
+                        else -> Global.p2pController.handleMethod(call, result)
                     }
                 } catch (e: Exception) {
                     loge(e)
@@ -49,10 +49,10 @@ class MainActivity : FlutterActivity() {
         log("requestPermissions() => " + requestPermissions())
         log("requestWifi() => " + requestWifi())
         log("requestLocation() => " + requestLocation())
-        p2pController.init(result)
+        Global.p2pController.init(result)
     }
 
-    private suspend fun requestPermissions(): Boolean {
+    private suspend fun requestPermissions() {
         fun notGranted(p: String) =
             ActivityCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED
 
@@ -61,19 +61,19 @@ class MainActivity : FlutterActivity() {
             android.Manifest.permission.ACCESS_WIFI_STATE,
             android.Manifest.permission.CHANGE_WIFI_STATE,
         ).forEach {
-            if (notGranted(it)) requiredPermissions.add(it)
+            if (notGranted(it)) Global.requiredPermissions.add(it)
         }
         if (Build.VERSION.SDK_INT >= 33) {
             val p = android.Manifest.permission.NEARBY_WIFI_DEVICES
-            if (notGranted(p)) requiredPermissions.add(p)
+            if (notGranted(p)) Global.requiredPermissions.add(p)
         }
 
-        if (requiredPermissions.isEmpty()) {
-            return true
-        } else {
-            return suspendCoroutine { continuation ->
-                requestPermissionsResult = continuation
-                ActivityCompat.requestPermissions(this, requiredPermissions.toTypedArray(), 0)
+        if (Global.requiredPermissions.isNotEmpty()) {
+            suspendCoroutine { continuation ->
+                Global.requestPermissionsResult = continuation
+                ActivityCompat.requestPermissions(
+                    this, Global.requiredPermissions.toTypedArray(), 0
+                )
             }
         }
     }
@@ -83,46 +83,40 @@ class MainActivity : FlutterActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults.reduce { acc, v -> acc * v } == 0) {
-            requestPermissionsResult?.resume(true)
+            Global.requestPermissionsResult?.resume(Unit)
         } else {
-            requestPermissionsResult?.resumeWithException(Exception("not all required permissions have been granted!"))
+            Global.requestPermissionsResult?.resumeWithException(Exception("not all required permissions have been granted!"))
         }
     }
 
-    private suspend fun requestWifi(): Boolean {
-        fun isEnabled(): Boolean =
-            (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager).isWifiEnabled
+    private suspend fun requestWifi() {
+        fun notEnabled(): Boolean =
+            !(context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager).isWifiEnabled
 
-        if (isEnabled()) {
-            return true
-        } else {
+        if (notEnabled()) {
             suspendCoroutine { continuation ->
-                requestActivityResult = continuation
+                Global.requestActivityResult = continuation
                 startActivityForResult(
-                    Intent(Settings.ACTION_WIFI_SETTINGS), requestWifiCode
+                    Intent(Settings.ACTION_WIFI_SETTINGS), Global.requestWifiCode
                 )
             }
-            if (isEnabled()) return true
-            else throw Exception("WiFi is not turned on!")
+            if (notEnabled()) throw Exception("WiFi is not turned on!")
         }
     }
 
-    private suspend fun requestLocation(): Boolean {
-        fun isEnabled(): Boolean =
-            (context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager).isProviderEnabled(
+    private suspend fun requestLocation() {
+        fun notEnabled(): Boolean =
+            !(context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager).isProviderEnabled(
                 LocationManager.GPS_PROVIDER
             )
-        if (isEnabled()) {
-            return true
-        } else {
+        if (notEnabled()) {
             suspendCoroutine { continuation ->
-                requestActivityResult = continuation
+                Global.requestActivityResult = continuation
                 startActivityForResult(
-                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), requestLocationCode
+                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), Global.requestLocationCode
                 )
             }
-            if (isEnabled()) return true
-            else throw Exception("Location is not turned on!")
+            if (notEnabled()) throw Exception("Location is not turned on!")
         }
     }
 
@@ -130,7 +124,7 @@ class MainActivity : FlutterActivity() {
     override fun onActivityResult(
         requestCode: Int, resultCode: Int, data: Intent?, caller: ComponentCaller
     ) {
-        log("onActivityResult()")
+        log("onActivityResult(): $requestCode, $resultCode")
         super.onActivityResult(requestCode, resultCode, data, caller)
 //        when (requestCode) {
 //            requestWifiCode -> requestWifiResult?.resume(Unit)
@@ -141,16 +135,16 @@ class MainActivity : FlutterActivity() {
     public override fun onResume() {
         log("onResume()")
         super.onResume()
-        if (requestActivityResult != null) {
-            requestActivityResult!!.resume(Unit)
-            requestActivityResult = null
+        if (Global.requestActivityResult != null) {
+            Global.requestActivityResult!!.resume(Unit)
+            Global.requestActivityResult = null
         }
-        p2pController.onResume()
+        Global.p2pController.onResume()
     }
 
     public override fun onPause() {
         super.onPause()
-        p2pController.onPause()
+        Global.p2pController.onPause()
     }
 }
 

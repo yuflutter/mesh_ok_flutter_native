@@ -67,7 +67,6 @@ class P2pController(
 
 
     private suspend fun discoverPeers(result: MethodChannel.Result) {
-
         if (ActivityCompat.checkSelfPermission(
                 activity, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
