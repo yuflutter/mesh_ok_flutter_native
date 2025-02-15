@@ -1,9 +1,12 @@
 package com.example.mesh_ok
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.wifi.WpsInfo
+import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
 import androidx.core.app.ActivityCompat
@@ -11,7 +14,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-
 
 class P2pController(
     private val activity: MainActivity,
@@ -33,6 +35,7 @@ class P2pController(
                     when (call.method) {
                         "init" -> init(result)
                         "discoverPeers" -> discoverPeers(result)
+                        "connectPeer" -> connectPeer(call.arguments as String, result)
                         else -> result.notImplemented()
                     }
                 } catch (e: Exception) {
@@ -43,7 +46,7 @@ class P2pController(
         }
     }
 
-    suspend fun init(result: MethodChannel.Result) {
+    fun init(result: MethodChannel.Result) {
         try {
             // Indicates a change in the Wi-Fi Direct status.
             intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
@@ -66,7 +69,7 @@ class P2pController(
     }
 
 
-    private suspend fun discoverPeers(result: MethodChannel.Result) {
+    private fun discoverPeers(result: MethodChannel.Result) {
         if (ActivityCompat.checkSelfPermission(
                 activity, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
@@ -93,22 +96,28 @@ class P2pController(
         if (refreshedPeers != peers) {
             peers.clear()
             peers.addAll(refreshedPeers)
-            val peersDto =
-                peers.map {
-                    it.convertObjectToMap()
-//                    mapOf(
-//                        "deviceName" to e.deviceName,
-//                        "deviceAddress" to e.deviceAddress,
-//                        "status" to e.status,
-//                        "primaryDeviceType" to e.primaryDeviceType,
-//                    )
-                }.toList()
+            val peersDto = peers.map { it.convertObjectToMap() }.toList()
             flutterChannel.invokeMethod("onPeersDiscovered", peersDto)
         }
-//        if (peers.isEmpty()) {
-//            log("no peers discovered")
-//            return@PeerListListener
-//        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun connectPeer(peerAddress: String, result: MethodChannel.Result) {
+        val peer = peers.find { it.deviceAddress == peerAddress }
+        log(peer.toString())
+        val config = WifiP2pConfig().apply {
+            deviceAddress = peer!!.deviceAddress
+            wps.setup = WpsInfo.PBC
+        }
+        p2pManager.connect(p2pChannel, config, object : WifiP2pManager.ActionListener {
+            override fun onSuccess() {
+                result.success(ok)
+            }
+
+            override fun onFailure(reason: Int) {
+                result.error("connectPeer() => $reason", null, null)
+            }
+        })
     }
 
     fun onResume() {
