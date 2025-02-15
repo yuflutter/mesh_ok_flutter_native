@@ -15,25 +15,12 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-private const val flutterChannelName = "WifiP2pMethodChannel"
-const val ok = "OK"
 
 class MainActivity : FlutterActivity() {
-    private val requiredPermissions = mutableListOf<String>()
-    private var requestPermissionsResult: Continuation<Boolean>? = null
-
-    private val requestWifiCode = 1;
-    private var requestWifiResult: Continuation<Unit>? = null
-
-    private val requestLocationCode = 2;
-    private var requestLocationResult: Continuation<Unit>? = null
-
-    private lateinit var p2pController: P2pController
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -62,7 +49,7 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    suspend fun init(result: MethodChannel.Result) {
+    private suspend fun init(result: MethodChannel.Result) {
         log("requestPermissions() => " + requestPermissions())
         log("requestWifi() => " + requestWifi())
         log("requestLocation() => " + requestLocation())
@@ -88,7 +75,7 @@ class MainActivity : FlutterActivity() {
         return if (requiredPermissions.isEmpty()) {
             true
         } else {
-            suspendCoroutine<Boolean> { continuation ->
+            suspendCoroutine { continuation ->
                 requestPermissionsResult = continuation
                 ActivityCompat.requestPermissions(this, requiredPermissions.toTypedArray(), 0)
             }
@@ -113,7 +100,7 @@ class MainActivity : FlutterActivity() {
         if (isEnabled()) {
             return true
         } else {
-            suspendCoroutine<Unit> { continuation ->
+            suspendCoroutine { continuation ->
                 requestWifiResult = continuation
                 startActivityForResult(
                     Intent(Settings.ACTION_WIFI_SETTINGS), requestWifiCode
@@ -131,7 +118,7 @@ class MainActivity : FlutterActivity() {
         if (isEnabled()) {
             return true
         } else {
-            suspendCoroutine<Unit> { continuation ->
+            suspendCoroutine { continuation ->
                 requestLocationResult = continuation
                 startActivityForResult(
                     Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), requestLocationCode

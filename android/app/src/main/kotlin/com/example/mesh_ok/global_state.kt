@@ -2,6 +2,9 @@ package com.example.mesh_ok
 
 import kotlin.coroutines.Continuation
 
+const val flutterChannelName = "WifiP2pMethodChannel"
+const val ok = "OK"
+
 val requiredPermissions = mutableListOf<String>()
 var requestPermissionsResult: Continuation<Boolean>? = null
 
