@@ -3,8 +3,8 @@ package com.example.mesh_ok
 import android.util.Log
 import kotlin.coroutines.Continuation
 
-const val ok = "OK"
 const val flutterChannelName = "WifiP2pMethodChannel"
+const val ok = "OK"
 
 object Global {
     var p2pController: P2pController? = null

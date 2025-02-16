@@ -1,10 +1,11 @@
-/// Сущности приходят из MethodChannel в виде Map<Object?, Object?>.
-/// Все поля складываем в all, а важные определяем явно в наследниках
+import 'dart:convert';
+
+/// Сущности приходят из MethodChannel в виде Map<Object?, Object?>, или JSON.
+/// Все поля складываем в all, а важные - определяем явно в наследниках.
 class NativeDto {
   final Map<String, dynamic> all;
 
-  NativeDto.fromDto(Map<Object?, Object?> dto)
-      : all = dto.map(
-          (k, v) => MapEntry('$k', v as dynamic),
-        );
+  NativeDto.fromMap(Map<Object?, Object?> map) : all = map.map((k, v) => MapEntry('$k', v as dynamic));
+
+  NativeDto.fromJson(String json) : all = jsonDecode(json) as Map<String, dynamic>;
 }

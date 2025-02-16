@@ -63,7 +63,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     final logger = global<Logger>();
     try {
       logger.info(result);
-      final peers = (result as List).map((e) => Peer.fromDto(e)).toList();
+      final peers = (result as List).map((e) => Peer.fromMap(e)).toList();
       logger.info('peers: ${peers.length}');
       emit(state.copyWith(peers: peers));
     } catch (e, s) {

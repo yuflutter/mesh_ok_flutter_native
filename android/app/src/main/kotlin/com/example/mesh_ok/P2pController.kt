@@ -16,6 +16,10 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+
+//import kotlinx.serialization.properties.encodeToMap
 
 class P2pController(
     activity: MainActivity,
@@ -88,6 +92,7 @@ class P2pController(
         })
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     val discoverPeersListener = WifiP2pManager.PeerListListener { peerList ->
         val refreshedPeers = peerList.deviceList
         log("discovered peers: ${refreshedPeers.count()}")
@@ -140,6 +145,7 @@ class P2pController(
 //    }
 
     inner class P2pBroadcastReceiver() : BroadcastReceiver() {
+        @OptIn(ExperimentalSerializationApi::class)
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 // Determine if Wi-Fi Direct mode is enabled or not, alert
@@ -194,7 +200,6 @@ class P2pController(
                             )
                         }
                     }
-
                 }
 
                 WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {

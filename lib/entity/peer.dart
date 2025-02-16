@@ -4,13 +4,19 @@ import 'peer_status.dart';
 export 'peer_status.dart';
 
 class Peer extends NativeDto {
-  final String deviceName;
-  final String deviceAddress;
-  final PeerStatus status;
+  late final String deviceName;
+  late final String deviceAddress;
+  late final PeerStatus status;
 
-  Peer.fromDto(super.dto)
-    : deviceName = dto['deviceName'] as String,
-      deviceAddress = dto['deviceAddress'] as String,
-      status = PeerStatus.fromId(dto['status'] as num),
-      super.fromDto();
+  Peer.fromMap(super.map) : super.fromMap() {
+    deviceName = all['deviceName'] as String;
+    deviceAddress = all['deviceAddress'] as String;
+    status = PeerStatus.fromId(all['status'] as num);
+  }
+
+  // Peer.fromJson(super.json) : super.fromJson() {
+  //   deviceName = all['deviceName'] as String;
+  //   deviceAddress = all['deviceAddress'] as String;
+  //   status = PeerStatus.fromId(all['status'] as int);
+  // }
 }
