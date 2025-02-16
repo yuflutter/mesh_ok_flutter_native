@@ -7,15 +7,14 @@ const val ok = "OK"
 const val flutterChannelName = "WifiP2pMethodChannel"
 
 object Global {
+    var p2pController: P2pController? = null
+
     val requiredPermissions = mutableListOf<String>()
     var requestPermissionsResult: Continuation<Unit>? = null
     var requestSettingsResult: Continuation<Unit>? = null
 
-    lateinit var p2pController: P2pController
-
 //    const val requestWifiCode = 1;
 //    var requestWifiResult: Continuation<Unit>? = null
-//
 //    const val requestLocationCode = 2;
 //    var requestLocationResult: Continuation<Unit>? = null
 }

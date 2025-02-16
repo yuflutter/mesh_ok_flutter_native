@@ -22,19 +22,17 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        val flutterChannel =
-            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, flutterChannelName)
+        if (Global.p2pController == null)
+            Global.p2pController = P2pController(this, flutterEngine)
 
-        Global.p2pController = P2pController(this, flutterChannel)
-
-        flutterChannel.setMethodCallHandler { call, result ->
+        Global.p2pController!!.flutterChannel.setMethodCallHandler { call, result ->
             log(call.method + "()")
             GlobalScope.launch {
 //          lifecycleScope.launch { // Почему-то работает плохо, иногда виснут suspendCoroutine()
                 try {
                     when (call.method) {
                         "init" -> init(result)
-                        else -> Global.p2pController.handleMethod(call, result)
+                        else -> Global.p2pController!!.handleMethod(call, result)
                     }
                 } catch (e: Exception) {
                     loge(e)
@@ -52,7 +50,7 @@ class MainActivity : FlutterActivity() {
         if (wifiNotEnabled()) err += "WiFi is not turned on!\n"
         if (locationNotEnabled()) err += "Location is not turned on!\n"
         if (err.isNotEmpty()) throw Exception(err)
-        Global.p2pController.init(result)
+        Global.p2pController!!.init(result)
     }
 
     private suspend fun requestPermissions() {
@@ -143,11 +141,15 @@ class MainActivity : FlutterActivity() {
             Global.requestSettingsResult!!.resume(Unit)
             Global.requestSettingsResult = null
         }
-        Global.p2pController.onResume()
+        registerReceiver(
+            Global.p2pController!!.broadcastReceiver,
+            Global.p2pController?.intentFilter
+        )
     }
 
     public override fun onPause() {
+        log("onPause()")
         super.onPause()
-        Global.p2pController.onPause()
+        activity.unregisterReceiver(Global.p2pController!!.broadcastReceiver)
     }
 }
