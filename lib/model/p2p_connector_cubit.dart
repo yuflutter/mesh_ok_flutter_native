@@ -78,10 +78,11 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   Future<void> connectPeer(Peer peer) async {
-    await dowl(
+    final res = await dowl(
       'connectPeer(${peer.deviceName})',
       () => _androidChannel.invokeMethod('connectPeer', peer.deviceAddress),
     );
+
     // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
   }
 

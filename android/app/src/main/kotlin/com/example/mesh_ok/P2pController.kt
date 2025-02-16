@@ -9,6 +9,7 @@ import android.net.NetworkInfo
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
+import android.net.wifi.p2p.WifiP2pInfo
 import android.net.wifi.p2p.WifiP2pManager
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -23,15 +24,14 @@ class P2pController(
     val flutterChannel =
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, flutterChannelName)
 
-    private val p2pManager =
-        activity.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
-    private val p2pChannel =
-        p2pManager.initialize(activity, activity.mainLooper, null)
+    private val p2pManager = activity.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
+    private val p2pChannel = p2pManager.initialize(activity, activity.mainLooper, null)
 
     val intentFilter = IntentFilter()
     val broadcastReceiver = P2pBroadcastReceiver()
 
     private val peers = mutableListOf<WifiP2pDevice>()
+    private var connectPeerResult: MethodChannel.Result? = null
 
     init {
         // Indicates a change in the Wi-Fi Direct status.
@@ -112,7 +112,7 @@ class P2pController(
         }
         p2pManager.connect(p2pChannel, config, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
-                result.success(ok)
+                connectPeerResult = result
             }
 
             override fun onFailure(reason: Int) {
@@ -121,23 +121,23 @@ class P2pController(
         })
     }
 
-    val connectPeerListener = WifiP2pManager.ConnectionInfoListener { info ->
-        log("WifiP2pInfo: $info")
-
-        val groupOwnerAddress = info.groupOwnerAddress.hostAddress
-
-        // After the group negotiation, we can determine the group owner
-        // (server).
-        if (info.groupFormed && info.isGroupOwner) {
-            // Do whatever tasks are specific to the group owner.
-            // One common case is creating a group owner thread and accepting
-            // incoming connections.
-        } else if (info.groupFormed) {
-            // The other device acts as the peer (client). In this case,
-            // you'll want to create a peer thread that connects
-            // to the group owner.
-        }
-    }
+//    val connectPeerListener = WifiP2pManager.ConnectionInfoListener { info ->
+//        log("WifiP2pInfo: $info")
+//
+//        val groupOwnerAddress = info.groupOwnerAddress.hostAddress
+//
+//        // After the group negotiation, we can determine the group owner
+//        // (server).
+//        if (info.groupFormed && info.isGroupOwner) {
+//            // Do whatever tasks are specific to the group owner.
+//            // One common case is creating a group owner thread and accepting
+//            // incoming connections.
+//        } else if (info.groupFormed) {
+//            // The other device acts as the peer (client). In this case,
+//            // you'll want to create a peer thread that connects
+//            // to the group owner.
+//        }
+//    }
 
     inner class P2pBroadcastReceiver() : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -158,8 +158,7 @@ class P2pController(
                     log("WIFI_P2P_PEERS_CHANGED")
                     try {
                         p2pManager.requestPeers(
-                            p2pChannel,
-                            discoverPeersListener
+                            p2pChannel, discoverPeersListener
                         )
                     } catch (e: SecurityException) {
                         loge(e)
@@ -171,16 +170,28 @@ class P2pController(
                 WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
                     log("WIFI_P2P_CONNECTION_CHANGED")
                     p2pManager.let { manager ->
-
-                        val networkInfo: NetworkInfo? = intent
-                            .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO) as NetworkInfo?
-
+                        val networkInfo: NetworkInfo? =
+                            intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO) as NetworkInfo?
                         log("NetworkInfo: $networkInfo")
-
                         if (networkInfo?.isConnected == true) {
-                            // We are connected with the other device, request connection
-                            // info to find group owner IP
-                            manager.requestConnectionInfo(p2pChannel, connectPeerListener)
+                            // We are connected with the other device, request connection info to find group owner IP
+                            manager.requestConnectionInfo(
+                                p2pChannel,
+                                WifiP2pManager.ConnectionInfoListener { p2pInfo ->
+                                    log("WifiP2pInfo: $p2pInfo")
+                                    // After the group negotiation, we can determine the group owner (server).
+                                    if (p2pInfo.groupFormed && p2pInfo.isGroupOwner) {
+                                        // Do whatever tasks are specific to the group owner.
+                                        // One common case is creating a group owner thread and accepting
+                                        // incoming connections.
+                                    } else if (p2pInfo.groupFormed) {
+                                        // The other device acts as the peer (client). In this case,
+                                        // you'll want to create a peer thread that connects
+                                        // to the group owner.
+                                    }
+                                    connectPeerResult?.success(p2pInfo.convertObjectToMap())
+                                },
+                            )
                         }
                     }
 

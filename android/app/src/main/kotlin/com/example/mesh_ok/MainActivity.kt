@@ -22,8 +22,10 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        if (Global.p2pController == null)
+        if (Global.p2pController == null) {
             Global.p2pController = P2pController(this, flutterEngine)
+            log("P2pController created")
+        }
 
         Global.p2pController!!.flutterChannel.setMethodCallHandler { call, result ->
             log(call.method + "()")
@@ -87,7 +89,6 @@ class MainActivity : FlutterActivity() {
             Global.requestPermissionsResult?.resume(Unit)
         } else {
             Global.requestPermissionsResult?.resumeWithException(Exception("Not all required permissions have been granted"))
-
         }
     }
 
@@ -143,7 +144,7 @@ class MainActivity : FlutterActivity() {
         }
         registerReceiver(
             Global.p2pController!!.broadcastReceiver,
-            Global.p2pController?.intentFilter
+            Global.p2pController!!.intentFilter
         )
     }
 
