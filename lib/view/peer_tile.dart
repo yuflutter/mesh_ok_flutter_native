@@ -15,23 +15,26 @@ class PeerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<P2pConnectorCubit, P2pConnectorState>(
       builder: (context, state) {
-        // final p2pInfo = state.p2pInfo;
         return PopupMenuButton(
           position: PopupMenuPosition.under,
           offset: Offset(MediaQuery.of(context).size.width, -25),
           itemBuilder:
               (context) => [
                 PopupMenuItem(
-                  // enabled: (p2pInfo?.isConnected != true),
+                  enabled: (peer.status == PeerStatus.available),
                   onTap: () => _connectToPeer(context, peer),
                   child: Text('Connect to peer'),
                 ),
                 PopupMenuItem(
-                  // enabled: (p2pInfo?.isConnected == true),
+                  enabled: (peer.status == PeerStatus.connected),
                   onTap: () => _tryToOpenChat(context, peer),
                   child: Text('Open chat'),
                 ),
-                PopupMenuItem(onTap: () => _disconnectMe(context), child: Text('Disconnect')),
+                PopupMenuItem(
+                  enabled: (peer.status != PeerStatus.available),
+                  onTap: () => _disconnectMe(context),
+                  child: Text('Disconnect'),
+                ),
                 // PopupMenuItem(
                 //   onTap: () => _removeGroup(context),_disconnectFromGroup
                 //   child: Text('Remove p2p group'),

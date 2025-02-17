@@ -5,7 +5,7 @@ import kotlin.coroutines.Continuation
 
 const val flutterChannelName = "WifiP2pMethodChannel"
 const val okResult = "OK"
-fun errorResult(msg: String): String = "{\"error\": \"$msg\"}"
+fun errResult(msg: String): String = "{\"error\": \"$msg\"}"
 
 object Global {
     var p2pController: P2pController? = null
