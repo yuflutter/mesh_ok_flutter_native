@@ -10,10 +10,7 @@ class StrongErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Container(
-        color: Colors.redAccent,
-        child: SelectableText('$error'),
-      ),
+      child: Container(color: Colors.redAccent, child: SelectableText('$error\n${error.stack}')),
     );
   }
 }

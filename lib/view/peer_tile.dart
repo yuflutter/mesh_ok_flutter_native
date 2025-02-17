@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '/entity/peer.dart';
+import '/entity/wifi_p2p_info.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/model/p2p_connector_state.dart';
 import 'etc/confirm_dialog.dart';
@@ -32,13 +33,9 @@ class PeerTile extends StatelessWidget {
                 ),
                 PopupMenuItem(
                   enabled: (peer.status != PeerStatus.available),
-                  onTap: () => _disconnectMe(context),
+                  onTap: () => _disconnectMe(context, state.p2pInfo),
                   child: Text('Disconnect'),
                 ),
-                // PopupMenuItem(
-                //   onTap: () => _removeGroup(context),_disconnectFromGroup
-                //   child: Text('Remove p2p group'),
-                // ),
               ],
           child: ListTile(
             title: Text(peer.deviceName),
@@ -71,11 +68,11 @@ class PeerTile extends StatelessWidget {
     // context.read<P2pConnectorCubit>().tryToOpenSocket();
   }
 
-  void _disconnectMe(BuildContext context) {
-    showConfirmDialog(context, title: 'Disconnect?', action: context.read<P2pConnectorCubit>().disconnectMe);
-  }
-
-  void _removeGroup(BuildContext context) {
-    showConfirmDialog(context, title: 'Remove group?', action: context.read<P2pConnectorCubit>().removeGroup);
+  void _disconnectMe(BuildContext context, WifiP2PInfo? p2pInfo) {
+    showConfirmDialog(
+      context,
+      title: (p2pInfo?.isGroupOwner == true) ? 'Remove group?' : 'Disconnect from group?',
+      action: context.read<P2pConnectorCubit>().disconnectMe,
+    );
   }
 }

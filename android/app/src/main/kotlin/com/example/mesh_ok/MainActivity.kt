@@ -28,7 +28,7 @@ class MainActivity : FlutterActivity() {
         }
 
         Global.p2pController!!.flutterChannel.setMethodCallHandler { call, result ->
-            log(call.method + "()")
+            log("Received call: $call")
             GlobalScope.launch {
 //          lifecycleScope.launch { // Почему-то работает плохо, иногда виснут suspendCoroutine()
                 try {

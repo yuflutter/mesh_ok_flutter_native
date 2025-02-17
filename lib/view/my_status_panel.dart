@@ -40,7 +40,6 @@ class MyStatusPanel extends StatelessWidget {
                                   text: p2pInfo.deviceRole.caption,
                                   style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
                                 ),
-                                // TextSpan(text: ' / ${p2pInfo.isConnected ? 'paired' : 'not paired'}'),
                               ],
                             ),
                           ),

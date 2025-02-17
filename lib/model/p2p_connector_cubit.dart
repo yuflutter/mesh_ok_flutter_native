@@ -38,7 +38,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
           return switch (call.method) {
             'onPeersDiscovered' => _onPeersDiscovered(call.arguments as List),
             'onP2pInfoChanged' => _onP2pInfoChanged(call.arguments as String),
-            _ => throw 'unknown method received: ${call.method}',
+            _ => throw 'Unknown method received: ${call.method}',
           };
         } catch (e, s) {
           logger.error("$runtimeType", e, s);

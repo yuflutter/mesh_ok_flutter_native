@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
                             flex: 2,
                             child: ListView(children: [...state.peers.map((peer) => PeerTile(peer: peer))]),
                           ),
+                          SizedBox(height: 3),
                           Expanded(flex: 3, child: LoggerWidget()),
                         ],
                       ),

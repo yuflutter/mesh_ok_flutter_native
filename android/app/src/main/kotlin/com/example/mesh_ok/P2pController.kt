@@ -107,6 +107,7 @@ class P2pController(
     }
 
     private fun disconnectMe(result: MethodChannel.Result) {
+        try {
         if (currentP2pInfo?.isGroupOwner == false) {
             // TODO: разобраться как удалять самого себя из группы
             p2pManager.removeGroup(p2pChannel, object : WifiP2pManager.ActionListener {
@@ -126,6 +127,9 @@ class P2pController(
                     result.error(msg, null, null)
                 }
             })
+        }} catch (e: Throwable) {
+            loge(e)
+            result.error("$e", null, null)
         }
     }
 
