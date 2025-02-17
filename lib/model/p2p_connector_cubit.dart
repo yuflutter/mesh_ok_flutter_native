@@ -34,14 +34,14 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
       _androidChannel.setMethodCallHandler((call) async {
         try {
-          logger.info('Received call: $call');
+          // logger.info('Received call: $call');
           return switch (call.method) {
-            'onPeersDiscovered' => _onPeersDiscovered(call.arguments),
-            'onP2pInfoChanged' => _onP2pInfoChanged(call.arguments),
+            'onPeersDiscovered' => _onPeersDiscovered(call.arguments as List),
+            'onP2pInfoChanged' => _onP2pInfoChanged(call.arguments as String),
             _ => throw 'unknown method received: ${call.method}',
           };
-        } catch (e) {
-          logger.error("$runtimeType", e);
+        } catch (e, s) {
+          logger.error("$runtimeType", e, s);
         }
       });
 

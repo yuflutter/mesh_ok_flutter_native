@@ -46,47 +46,32 @@ class _HomePageState extends State<HomePage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // MyStatusPanel(),
+                          MyStatusPanel(),
                           Text('Discovered peers:', style: headerTextStyle),
                           Expanded(
                             flex: 2,
-                            child: ListView(
-                              children: [
-                                ...state.peers.map((peer) => PeerTile(peer: peer)),
-                              ],
-                            ),
+                            child: ListView(children: [...state.peers.map((peer) => PeerTile(peer: peer))]),
                           ),
-                          Expanded(
-                            flex: 3,
-                            child: LoggerWidget(),
-                          ),
+                          Expanded(flex: 3, child: LoggerWidget()),
                         ],
                       ),
                       // Демонстрация, как можно избавиться от флагов isWaiting в стейте.
                       // Future сама по себе является таким флагом, и не нужно плодить сущности.
                       // SimpleFutureBuilder рисует прелоадер, пока фьюча выполняется.
-                      SimpleFutureBuilder(
-                        future: _refreshFuture,
-                        builder: (context, _) => SizedBox(),
-                      ),
+                      SimpleFutureBuilder(future: _refreshFuture, builder: (context, _) => SizedBox()),
                     ],
                   ),
                 ),
                 bottomNavigationBar: BottomNavigationBar(
-                  onTap: (i) => switch (i) {
-                    0 => global<Logger>().clear(),
-                    1 => _refresh(),
-                    _ => null,
-                  },
+                  onTap:
+                      (i) => switch (i) {
+                        0 => global<Logger>().clear(),
+                        1 => _refresh(),
+                        _ => null,
+                      },
                   items: [
-                    BottomNavigationBarItem(
-                      label: 'Clear log',
-                      icon: Icon(Icons.clear),
-                    ),
-                    BottomNavigationBarItem(
-                      label: 'Refresh',
-                      icon: Icon(Icons.refresh),
-                    ),
+                    BottomNavigationBarItem(label: 'Clear log', icon: Icon(Icons.clear)),
+                    BottomNavigationBarItem(label: 'Refresh', icon: Icon(Icons.refresh)),
                   ],
                 ),
               ),

@@ -4,7 +4,6 @@ import android.util.Log
 import kotlin.coroutines.Continuation
 
 const val flutterChannelName = "WifiP2pMethodChannel"
-const val ok = "OK"
 
 object Global {
     var p2pController: P2pController? = null
@@ -18,6 +17,9 @@ object Global {
 //    const val requestLocationCode = 2;
 //    var requestLocationResult: Continuation<Unit>? = null
 }
+
+const val okResult = "OK"
+fun errorResult(msg: String): String = "{\"error\": \"$msg\"}"
 
 fun log(msg: String) = Log.d(flutterChannelName, msg)
 fun loge(err: Throwable) = Log.e(flutterChannelName, err.toString())

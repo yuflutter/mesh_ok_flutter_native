@@ -64,7 +64,7 @@ class P2pController(
     fun init(result: MethodChannel.Result) {
         try {
             // тут что-то было, но ушло в init{}
-            result.success(ok)
+            result.success(okResult)
         } catch (e: Exception) {
             result.error(e.toString(), null, null)
         }
@@ -73,7 +73,7 @@ class P2pController(
     private fun discoverPeers(result: MethodChannel.Result) {
         try {
             p2pManager.discoverPeers(p2pChannel, object : WifiP2pManager.ActionListener {
-                override fun onSuccess() = result.success(ok)
+                override fun onSuccess() = result.success(okResult)
                 override fun onFailure(reasonCode: Int) {
                     val msg = "discoverPeers() => ${failureReasonMsg(reasonCode)}"
                     loge(msg)
@@ -99,8 +99,8 @@ class P2pController(
         try {
 //            connectPeerResult = result
             p2pManager.connect(p2pChannel, config, object : WifiP2pManager.ActionListener {
-//                override fun onSuccess() {} // ждем срабатвания бродкастов //result.success(ok)
-                override fun onSuccess() = result.success(ok)
+                //                override fun onSuccess() {} // ждем срабатвания бродкастов //result.success(ok)
+                override fun onSuccess() = result.success(okResult)
                 override fun onFailure(reasonCode: Int) {
                     val msg = "connectPeer() => ${failureReasonMsg(reasonCode)}"
                     loge(msg)
@@ -131,6 +131,7 @@ class P2pController(
                         p2pManager.requestPeers(p2pChannel) { peerList ->
                             val newPeers = peerList.deviceList
                             log("Discovered peers: ${newPeers.count()}")
+//                            if (!newPeers.toTypedArray().contentDeepEquals(peers.toTypedArray())) {
 //                            if (newPeers != peers) {
                             peers.clear()
                             peers.addAll(newPeers)
@@ -170,8 +171,9 @@ class P2pController(
 //                                connectPeerResult?.success(dto)
                             })
                         } else {
-                            val msg = "Not connected"
-                            flutterChannel.invokeMethod("onP2pInfoChanged", msg)
+                            flutterChannel.invokeMethod(
+                                "onP2pInfoChanged", errorResult("DISCONNECTED")
+                            )
 //                            connectPeerResult?.error(msg, null, null)
                         }
 //                        connectPeerResult = null

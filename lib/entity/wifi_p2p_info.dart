@@ -1,10 +1,8 @@
-import 'dart:convert';
-
-import 'native_dto.dart';
+import 'platform_result.dart';
 import 'device_role.dart';
 export 'device_role.dart';
 
-class WifiP2PInfo extends NativeDto {
+class WifiP2PInfo extends PlatformResult {
   late final bool groupFormed;
   late final bool isGroupOwner;
   late final String groupOwnerAddress;
@@ -12,16 +10,14 @@ class WifiP2PInfo extends NativeDto {
   DeviceRole get deviceRole => (isGroupOwner) ? DeviceRole.host : DeviceRole.client;
 
   WifiP2PInfo.fromJson(super.json) : super.fromJson() {
-    if (error == null) {
-      groupFormed = all['groupFormed'];
-      isGroupOwner = all['isGroupOwner'];
-      groupOwnerAddress = all['groupOwnerAddress'];
-    } else {
+    if (isError) {
       groupFormed = false;
       isGroupOwner = false;
       groupOwnerAddress = '';
+    } else {
+      groupFormed = all['groupFormed'];
+      isGroupOwner = all['isGroupOwner'];
+      groupOwnerAddress = all['groupOwnerAddress'];
     }
   }
-
-  String toJson() => jsonEncode(all);
 }
