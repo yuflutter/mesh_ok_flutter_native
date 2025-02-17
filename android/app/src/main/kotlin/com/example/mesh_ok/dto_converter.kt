@@ -3,6 +3,11 @@ package com.example.mesh_ok
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
+// Convert a data class to a JSON
+inline fun <T> T.convertObjectToJson(): String {
+    return Gson().toJson(this)
+}
+
 // Convert a data class to a Map
 fun <T> T.convertObjectToMap(): Map<String, Any> {
     return convertSomethingToSomething()
@@ -18,9 +23,4 @@ inline fun <I, reified O> I.convertSomethingToSomething(): O {
     val gson = Gson()
     val json = gson.toJson(this)
     return gson.fromJson(json, object : TypeToken<O>() {}.type)
-}
-
-// Convert a data class to a JSON
-inline fun <T> T.convertObjectToJson(): String {
-    return Gson().toJson(this)
 }

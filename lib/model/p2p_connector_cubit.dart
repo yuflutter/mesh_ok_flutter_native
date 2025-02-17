@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '/core/global.dart';
 import '/core/logger.dart';
 import '/entity/peer.dart';
+import '/entity/wifi_p2p_info.dart';
 import '/data/p2p_info_repository.dart';
 import 'p2p_connector_state.dart';
 import 'etc/dowl.dart';
@@ -32,11 +33,16 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
       await _androidChannel.invokeMethod('init');
 
       _androidChannel.setMethodCallHandler((call) async {
-        // logger.info('Received event: $call');
-        return switch (call.method) {
-          'onPeersDiscovered' => _onPeersDiscovered(call.arguments),
-          _ => throw 'unknown method received: ${call.method}',
-        };
+        try {
+          logger.info('Received call: $call');
+          return switch (call.method) {
+            'onPeersDiscovered' => _onPeersDiscovered(call.arguments),
+            'onP2pInfoChanged' => _onP2pInfoChanged(call.arguments),
+            _ => throw 'unknown method received: ${call.method}',
+          };
+        } catch (e) {
+          logger.error("$runtimeType", e);
+        }
       });
 
       await refreshAll();
@@ -59,11 +65,11 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     await dowl('discoverPeers()', () => _androidChannel.invokeMethod('discoverPeers'));
   }
 
-  void _onPeersDiscovered(dynamic result) {
+  void _onPeersDiscovered(List result) {
     final logger = global<Logger>();
     try {
       logger.info(result);
-      final peers = (result as List).map((e) => Peer.fromMap(e)).toList();
+      final peers = result.map((e) => Peer.fromJson(e)).toList();
       logger.info('peers: ${peers.length}');
       emit(state.copyWith(peers: peers));
     } catch (e, s) {
@@ -78,12 +84,26 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   Future<void> connectPeer(Peer peer) async {
-    final res = await dowl(
+    await dowl(
       'connectPeer(${peer.deviceName})',
       () => _androidChannel.invokeMethod('connectPeer', peer.deviceAddress),
     );
+  }
 
-    // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
+  void _onP2pInfoChanged(String result) async {
+    final logger = global<Logger>();
+    try {
+      logger.info(result);
+      final p2pInfo = WifiP2PInfo.fromJson(result);
+      emit(state.copyWith(p2pInfo: p2pInfo));
+      if (state.p2pInfo?.error == null) {
+        // tryToOpenSocket();
+      }
+      // await repository.saveP2pInfo(p2pInfo); // сохраняем для следующего запуска
+      // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
+    } catch (e, s) {
+      logger.error('$runtimeType', e, s);
+    }
   }
 
   Future<void> disconnectFromGroup() async {
@@ -95,23 +115,6 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     // await dowl('removeGroup()', _conn.removeGroup);
     // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
   }
-
-  // void _onP2pInfoChanged(WifiP2PInfo p2pInfo) async {
-  //   final logger = global<Logger>();
-  //   try {
-  //     logger.info(p2pInfo.toJson());
-  //     emit(state.copyWith(p2pInfo: p2pInfo));
-
-  //     if (state.p2pInfo?.isConnected == true) {
-  //       tryToOpenSocket();
-  //     }
-
-  //     await repository.saveP2pInfo(p2pInfo); // сохраняем для следующего запуска
-  //     _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
-  //   } catch (e, s) {
-  //     logger.error('$runtimeType', e, s);
-  //   }
-  // }
 
   // void tryToOpenSocket() async {
   //   if (state.p2pInfo?.isConnected != true) return;

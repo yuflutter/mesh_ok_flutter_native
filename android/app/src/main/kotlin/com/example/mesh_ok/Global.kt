@@ -19,14 +19,7 @@ object Global {
 //    var requestLocationResult: Continuation<Unit>? = null
 }
 
-fun log(msg: String) {
-    Log.d(flutterChannelName, msg)
-}
+fun log(msg: String) = Log.d(flutterChannelName, msg)
+fun loge(err: Throwable) = Log.e(flutterChannelName, err.toString())
+fun loge(err: String) = Log.e(flutterChannelName, err)
 
-fun loge(err: Throwable) {
-    Log.e(flutterChannelName, err.toString())
-}
-
-fun loge(err: String) {
-    Log.e(flutterChannelName, err)
-}
