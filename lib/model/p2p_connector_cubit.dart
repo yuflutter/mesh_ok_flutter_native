@@ -106,9 +106,8 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     }
   }
 
-  Future<void> disconnectFromGroup() async {
-    // await dowl('disconnect()', _conn.disconnect);
-    // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
+  Future<void> disconnectMe() async {
+    await dowl('disconnectMe()', () => _androidChannel.invokeMethod('disconnectMe'));
   }
 
   Future<void> removeGroup() async {

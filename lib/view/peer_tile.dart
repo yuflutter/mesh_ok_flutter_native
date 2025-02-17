@@ -19,26 +19,24 @@ class PeerTile extends StatelessWidget {
         return PopupMenuButton(
           position: PopupMenuPosition.under,
           offset: Offset(MediaQuery.of(context).size.width, -25),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              // enabled: (p2pInfo?.isConnected != true),
-              onTap: () => _connectToPeer(context, peer),
-              child: Text('Connect to peer'),
-            ),
-            PopupMenuItem(
-              // enabled: (p2pInfo?.isConnected == true),
-              onTap: () => _tryToOpenChat(context, peer),
-              child: Text('Open chat'),
-            ),
-            // PopupMenuItem(
-            //   onTap: () => _disconnectFromGroup(context),
-            //   child: Text('Disconnect from group'),
-            // ),
-            PopupMenuItem(
-              onTap: () => _removeGroup(context),
-              child: Text('Remove p2p group'),
-            ),
-          ],
+          itemBuilder:
+              (context) => [
+                PopupMenuItem(
+                  // enabled: (p2pInfo?.isConnected != true),
+                  onTap: () => _connectToPeer(context, peer),
+                  child: Text('Connect to peer'),
+                ),
+                PopupMenuItem(
+                  // enabled: (p2pInfo?.isConnected == true),
+                  onTap: () => _tryToOpenChat(context, peer),
+                  child: Text('Open chat'),
+                ),
+                PopupMenuItem(onTap: () => _disconnectMe(context), child: Text('Disconnect')),
+                // PopupMenuItem(
+                //   onTap: () => _removeGroup(context),_disconnectFromGroup
+                //   child: Text('Remove p2p group'),
+                // ),
+              ],
           child: ListTile(
             title: Text(peer.deviceName),
             subtitle: Text('${peer.all['primaryDeviceType']} / ${peer.all['deviceAddress']}'),
@@ -70,19 +68,11 @@ class PeerTile extends StatelessWidget {
     // context.read<P2pConnectorCubit>().tryToOpenSocket();
   }
 
-  // void _disconnectFromGroup(BuildContext context) {
-  //   showConfirmDialog(
-  //     context,
-  //     title: 'Disconnect from group?',
-  //     action: context.read<P2pConnectorCubit>().disconnectFromGroup,
-  //   );
-  // }
+  void _disconnectMe(BuildContext context) {
+    showConfirmDialog(context, title: 'Disconnect?', action: context.read<P2pConnectorCubit>().disconnectMe);
+  }
 
   void _removeGroup(BuildContext context) {
-    showConfirmDialog(
-      context,
-      title: 'Remove group?',
-      action: context.read<P2pConnectorCubit>().removeGroup,
-    );
+    showConfirmDialog(context, title: 'Remove group?', action: context.read<P2pConnectorCubit>().removeGroup);
   }
 }
