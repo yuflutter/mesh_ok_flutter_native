@@ -79,11 +79,11 @@ class _HomePageState extends State<HomePage> {
             );
           },
           listener: (context, state) {
-            // if (state.justConnectedSocket != null) {
-            //   Navigator.of(context).push(
-            //     MaterialPageRoute(builder: (_) => ChatPage(socketCubit: state.justConnectedSocket!)),
-            //   );
-            // }
+            if (state.justConnectedSocket != null) {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => ChatPage(socketCubit: state.justConnectedSocket!)));
+            }
           },
         );
       },

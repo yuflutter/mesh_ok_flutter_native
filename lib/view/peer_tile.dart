@@ -65,7 +65,7 @@ class PeerTile extends StatelessWidget {
   }
 
   void _tryToOpenChat(BuildContext context, Peer peer) {
-    // context.read<P2pConnectorCubit>().tryToOpenSocket();
+    context.read<P2pConnectorCubit>().tryToOpenSocket();
   }
 
   void _disconnectMe(BuildContext context, WifiP2PInfo? p2pInfo) {

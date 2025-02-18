@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mesh_ok/entity/socket_status.dart';
+import 'package:mesh_ok/model/socket_cubit.dart';
 
 import '/core/global.dart';
 import '/core/logger.dart';
@@ -21,7 +23,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   Future<void> init() async {
-    final logger = global<Logger>();
+    final log = global<Logger>();
     try {
       // Нет способа получить из сети текущее состояние p2p, поэтому сохраняем его локально,
       // и восстанавливаем при старте приложения.
@@ -38,7 +40,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
       WidgetsBinding.instance.addObserver(this);
     } catch (e, s) {
-      logger.error(this, e, s);
+      log.e(this, e, s);
     }
   }
 
@@ -51,14 +53,14 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   void _onPeersDiscovered(List result) {
-    final logger = global<Logger>();
+    final log = global<Logger>();
     try {
-      logger.info(result);
+      log.i(result);
       final peers = result.map((e) => Peer.fromJson(e as String)).toList();
-      logger.info('peers: ${peers.length}');
+      log.i('peers: ${peers.length}');
       emit(state.copyWith(peers: peers));
     } catch (e, s) {
-      logger.error(this, e, s);
+      log.e(this, e, s);
     }
   }
 
@@ -73,18 +75,18 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   void _onP2pInfoChanged(String result) async {
-    final logger = global<Logger>();
+    final log = global<Logger>();
     try {
-      logger.info(result);
+      log.i(result);
       final p2pInfo = WifiP2PInfo.fromJson(result);
       emit(state.copyWith(p2pInfo: p2pInfo));
       if (state.p2pInfo?.isConnected == true) {
-        // tryToOpenSocket();
+        tryToOpenSocket();
       }
       // await repository.saveP2pInfo(p2pInfo); // сохраняем для следующего запуска
       // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
     } catch (e, s) {
-      logger.error(this, e, s);
+      log.e(this, e, s);
     }
   }
 
@@ -97,24 +99,25 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
   }
 
-  // void tryToOpenSocket() async {
-  //   if (state.p2pInfo?.isConnected != true) return;
-  //   _conn.closeSocket(notify: false);
-  //   final socketCubit = SocketCubit(p2pInfo: state.p2pInfo!);
-  //   socketCubit
-  //     ..init()
-  //     ..socketStatusStream.listen((socketStatus) {
-  //       emit(state.copyWith(
-  //         socketStatus: socketStatus,
-  //         justConnectedSocket: (socketStatus == SocketStatus.connected) ? socketCubit : null,
-  //       ));
-  //     });
-  // }
+  void tryToOpenSocket() async {
+    if (state.p2pInfo?.isConnected != true) return;
+    final socketCubit = SocketCubit(p2pInfo: state.p2pInfo!);
+    socketCubit
+      ..init()
+      ..socketStatusStream.listen((socketStatus) {
+        emit(
+          state.copyWith(
+            socketStatus: socketStatus,
+            justConnectedSocket: (socketStatus == SocketStatus.connected) ? socketCubit : null,
+          ),
+        );
+      });
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    final logger = global<Logger>();
-    logger.info(state);
+    final log = global<Logger>();
+    log.i(state);
     // if (state == AppLifecycleState.paused) {
     //   // await dowl('unregister()', _conn.unregister);
     // } else if (state == AppLifecycleState.resumed) {

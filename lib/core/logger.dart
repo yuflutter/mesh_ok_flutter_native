@@ -11,21 +11,24 @@ class Logger with ChangeNotifier {
 
   final List<_Log> _lastLogs = [];
 
-  void info(dynamic info, {bool consoleOnly = false}) {
+  /// Info
+  void i(dynamic info, {bool consoleOnly = false}) {
     _addLog(_Log('INFO', info.toString()), consoleOnly);
   }
 
-  void warn(dynamic warn, {bool consoleOnly = false}) {
+  /// Warning
+  void w(dynamic warn, {bool consoleOnly = false}) {
     _addLog(_Log('WARN', warn.toString()), consoleOnly);
   }
 
-  void error(dynamic source, Object error, [StackTrace? stack]) {
+  /// Error
+  void e(dynamic source, Object e, [StackTrace? s]) {
     final sourceText = switch (source) {
       String() => source,
       Object() => source.runtimeType,
       _ => source.toString(),
     };
-    _addLog(_Log('ERROR', 'in $sourceText: $error\n$stack'));
+    _addLog(_Log('ERROR', 'in $sourceText: $e\n$s'));
   }
 
   void _addLog(_Log l, [bool consoleOnly = false]) {

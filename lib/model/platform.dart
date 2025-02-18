@@ -10,26 +10,25 @@ class Platform {
   final void Function(List) onPeersDiscovered;
   final void Function(String) onP2pInfoChanged;
 
+  Future init() => channel.invokeMethod('init');
+  Future discoverPeers() => channel.invokeMethod('discoverPeers');
+  Future connectPeer(String deviceAddress) => channel.invokeMethod('connectPeer', deviceAddress);
+  Future disconnectMe() => channel.invokeMethod('disconnectMe');
+
   Platform({required this.onPeersDiscovered, required this.onP2pInfoChanged}) {
     channel.setMethodCallHandler((call) async {
-      final logger = global<Logger>();
+      final log = global<Logger>();
       try {
-        logger.info('Received call: $call', consoleOnly: true);
+        log.i('Received call: $call', consoleOnly: true);
         return switch (call.method) {
           'onPeersDiscovered' => onPeersDiscovered(call.arguments as List),
           'onP2pInfoChanged' => onP2pInfoChanged(call.arguments as String),
           _ => throw 'Unknown method received: ${call.method}',
         };
       } catch (e, s) {
-        logger.error(this, e, s);
+        log.e(this, e, s);
       }
     });
   }
-
-  Future init() => channel.invokeMethod('init');
-  Future discoverPeers() => channel.invokeMethod('discoverPeers');
-  Future connectPeer(String deviceAddress) => channel.invokeMethod('connectPeer', deviceAddress);
-  Future disconnectMe() => channel.invokeMethod('disconnectMe');
-
   void close() => channel.setMethodCallHandler(null);
 }
