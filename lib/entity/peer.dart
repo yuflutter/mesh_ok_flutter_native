@@ -11,6 +11,6 @@ class Peer extends PlatformResult {
   Peer.fromJson(super.json) : super.fromJson() {
     deviceName = all['deviceName'] as String;
     deviceAddress = all['deviceAddress'] as String;
-    status = PeerStatus.fromId(all['status'] as num);
+    status = PeerStatus.fromId(all['status'] as int);
   }
 }

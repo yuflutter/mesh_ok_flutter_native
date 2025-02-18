@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '/core/global.dart';
@@ -8,19 +7,18 @@ import '/core/logger.dart';
 import '/entity/peer.dart';
 import '/entity/wifi_p2p_info.dart';
 import '/data/p2p_info_repository.dart';
-import 'p2p_connector_state.dart';
 import 'etc/dowl.dart';
-
-const _androidChannelName = "WifiP2pMethodChannel";
+import 'p2p_connector_state.dart';
+import 'platform.dart';
 
 class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObserver {
   final P2pInfoRepository repository;
 
-  final _androidChannel = MethodChannel(_androidChannelName);
+  late final Platform _platform;
 
-  // StreamSubscription? _eventSubscription;
-
-  P2pConnectorCubit({required this.repository}) : super(P2pConnectorState.initial());
+  P2pConnectorCubit({required this.repository}) : super(P2pConnectorState.initial()) {
+    _platform = Platform(onPeersDiscovered: _onPeersDiscovered, onP2pInfoChanged: _onP2pInfoChanged);
+  }
 
   Future<void> init() async {
     final logger = global<Logger>();
@@ -30,20 +28,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
       await repository.init();
       // emit(state.copyWith(p2pInfo: repository.restoreP2pInfo()));
 
-      await _androidChannel.invokeMethod('init');
-
-      _androidChannel.setMethodCallHandler((call) async {
-        try {
-          // logger.info('Received call: $call');
-          return switch (call.method) {
-            'onPeersDiscovered' => _onPeersDiscovered(call.arguments as List),
-            'onP2pInfoChanged' => _onP2pInfoChanged(call.arguments as String),
-            _ => throw 'Unknown method received: ${call.method}',
-          };
-        } catch (e, s) {
-          logger.error("$runtimeType", e, s);
-        }
-      });
+      await dowl('init()', _platform.init);
 
       await refreshAll();
 
@@ -53,7 +38,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
       WidgetsBinding.instance.addObserver(this);
     } catch (e, s) {
-      logger.error('$runtimeType', e, s);
+      logger.error(this, e, s);
     }
   }
 
@@ -62,18 +47,18 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   Future<void> _discoverPeers() async {
-    await dowl('discoverPeers()', () => _androidChannel.invokeMethod('discoverPeers'));
+    await dowl('discoverPeers()', _platform.discoverPeers);
   }
 
   void _onPeersDiscovered(List result) {
     final logger = global<Logger>();
     try {
       logger.info(result);
-      final peers = result.map((e) => Peer.fromJson(e)).toList();
+      final peers = result.map((e) => Peer.fromJson(e as String)).toList();
       logger.info('peers: ${peers.length}');
       emit(state.copyWith(peers: peers));
     } catch (e, s) {
-      logger.error('$runtimeType', e, s);
+      logger.error(this, e, s);
     }
   }
 
@@ -84,10 +69,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   Future<void> connectPeer(Peer peer) async {
-    await dowl(
-      'connectPeer(${peer.deviceName})',
-      () => _androidChannel.invokeMethod('connectPeer', peer.deviceAddress),
-    );
+    await dowl('connectPeer(${peer.deviceName})', () => _platform.connectPeer(peer.deviceAddress));
   }
 
   void _onP2pInfoChanged(String result) async {
@@ -96,18 +78,18 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
       logger.info(result);
       final p2pInfo = WifiP2PInfo.fromJson(result);
       emit(state.copyWith(p2pInfo: p2pInfo));
-      if (state.p2pInfo?.error == null) {
+      if (state.p2pInfo?.isConnected == true) {
         // tryToOpenSocket();
       }
       // await repository.saveP2pInfo(p2pInfo); // сохраняем для следующего запуска
       // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
     } catch (e, s) {
-      logger.error('$runtimeType', e, s);
+      logger.error(this, e, s);
     }
   }
 
   Future<void> disconnectMe() async {
-    await dowl('disconnectMe()', () => _androidChannel.invokeMethod('disconnectMe'));
+    await dowl('disconnectMe()', _platform.disconnectMe);
   }
 
   Future<void> removeGroup() async {
@@ -144,7 +126,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   @override
   Future<void> close() {
     WidgetsBinding.instance.removeObserver(this);
-    _androidChannel.setMethodCallHandler(null);
+    _platform.close();
     return super.close();
   }
 }

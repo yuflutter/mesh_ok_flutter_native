@@ -11,40 +11,48 @@ class Logger with ChangeNotifier {
 
   final List<_Log> _lastLogs = [];
 
-  void info(dynamic info) {
-    _addLog(_Log('INFO', info.toString()));
+  void info(dynamic info, {bool consoleOnly = false}) {
+    _addLog(_Log('INFO', info.toString()), consoleOnly);
   }
 
-  void warn(dynamic warn) {
-    _addLog(_Log('WARN', warn.toString()));
+  void warn(dynamic warn, {bool consoleOnly = false}) {
+    _addLog(_Log('WARN', warn.toString()), consoleOnly);
   }
 
-  void error(String source, Object error, [StackTrace? stack]) {
-    _addLog(_Log('ERROR', 'in $source: $error\n$stack'));
+  void error(dynamic source, Object error, [StackTrace? stack]) {
+    final sourceText = switch (source) {
+      String() => source,
+      Object() => source.runtimeType,
+      _ => source.toString(),
+    };
+    _addLog(_Log('ERROR', 'in $sourceText: $error\n$stack'));
   }
 
-  void _addLog(_Log l) {
+  void _addLog(_Log l, [bool consoleOnly = false]) {
     if (kDebugMode) {
       dev.log(l.toString());
     } else {
       print(l.toString());
     }
-    _lastLogs.add(l);
-    if (_lastLogs.length > _maxLogsSaved) {
-      _lastLogs.removeAt(0);
+    if (!consoleOnly) {
+      _lastLogs.add(l);
+      if (_lastLogs.length > _maxLogsSaved) {
+        _lastLogs.removeAt(0);
+      }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   List<String> lastLogs({bool reversed = true, String dateFormat = 'dd.MM HH:mm:ss'}) {
     final df = (dateFormat.isNotEmpty) ? DateFormat(dateFormat) : null;
-    final res = _lastLogs.map<String>((e) {
-      if (df != null) {
-        return '${e.level} [${df.format(e.when)}] ${e.what}';
-      } else {
-        return '${e.level}: ${e.what}';
-      }
-    }).toList();
+    final res =
+        _lastLogs.map<String>((e) {
+          if (df != null) {
+            return '${e.level} [${df.format(e.when)}] ${e.what}';
+          } else {
+            return '${e.level}: ${e.what}';
+          }
+        }).toList();
     return (reversed) ? res.reversed.toList() : res;
   }
 
