@@ -1,12 +1,12 @@
 import 'platform_result.dart';
 
-enum DeviceRole { host, client }
+enum DeviceRole { client, host }
 
 extension DeviceRoleEx on DeviceRole {
   String get caption => switch (this) {
-    DeviceRole.host => 'host (server)',
-    DeviceRole.client => 'client',
-  };
+        DeviceRole.client => 'client',
+        DeviceRole.host => 'host (server)',
+      };
 }
 
 class WifiP2PInfo extends PlatformResult {

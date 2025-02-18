@@ -4,14 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '/core/logger_widget.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/model/p2p_connector_state.dart';
-import '/model/socket_cubit.dart';
-import '/model/socket_state.dart';
+import '/model/socket_chat_cubit.dart';
+import '/model/socket_chat_state.dart';
 import 'my_status_panel.dart';
 
 class ChatPage extends StatefulWidget {
-  final SocketCubit socketCubit;
+  final SocketChatCubit socketChatCubit;
 
-  const ChatPage({super.key, required this.socketCubit});
+  const ChatPage({super.key, required this.socketChatCubit});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -23,10 +23,10 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: widget.socketCubit,
+      value: widget.socketChatCubit,
       child: BlocBuilder<P2pConnectorCubit, P2pConnectorState>(
         builder: (context, connector) {
-          return BlocBuilder<SocketCubit, SocketState>(
+          return BlocBuilder<SocketChatCubit, SocketChatState>(
             builder: (context, socket) {
               return Scaffold(
                 appBar: AppBar(
@@ -76,7 +76,13 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _senfMessage(String msg) {
-    widget.socketCubit.sendMessage(msg);
+    widget.socketChatCubit.sendMessage(msg);
     _msgController.clear();
+  }
+
+  @override
+  void dispose() {
+    widget.socketChatCubit.close();
+    super.dispose();
   }
 }

@@ -64,12 +64,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 bottomNavigationBar: BottomNavigationBar(
-                  onTap:
-                      (i) => switch (i) {
-                        0 => global<Logger>().clear(),
-                        1 => _refresh(),
-                        _ => null,
-                      },
+                  onTap: (i) => switch (i) {
+                    0 => global<Logger>().clear(),
+                    1 => _refresh(),
+                    _ => null,
+                  },
                   items: [
                     BottomNavigationBarItem(label: 'Clear log', icon: Icon(Icons.clear)),
                     BottomNavigationBarItem(label: 'Refresh', icon: Icon(Icons.refresh)),
@@ -79,10 +78,10 @@ class _HomePageState extends State<HomePage> {
             );
           },
           listener: (context, state) {
-            if (state.justConnectedSocket != null) {
+            if (state.doOpenSocketChat != null) {
               Navigator.of(
                 context,
-              ).push(MaterialPageRoute(builder: (_) => ChatPage(socketCubit: state.justConnectedSocket!)));
+              ).push(MaterialPageRoute(builder: (_) => ChatPage(socketChatCubit: state.doOpenSocketChat!)));
             }
           },
         );

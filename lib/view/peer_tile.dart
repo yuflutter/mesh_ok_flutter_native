@@ -19,24 +19,23 @@ class PeerTile extends StatelessWidget {
         return PopupMenuButton(
           position: PopupMenuPosition.under,
           offset: Offset(MediaQuery.of(context).size.width, -25),
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  enabled: (peer.status == PeerStatus.available),
-                  onTap: () => _connectToPeer(context, peer),
-                  child: Text('Connect to peer'),
-                ),
-                PopupMenuItem(
-                  enabled: (peer.status == PeerStatus.connected),
-                  onTap: () => _tryToOpenChat(context, peer),
-                  child: Text('Open chat'),
-                ),
-                PopupMenuItem(
-                  enabled: (peer.status != PeerStatus.available),
-                  onTap: () => _disconnectMe(context, state.p2pInfo),
-                  child: Text('Disconnect'),
-                ),
-              ],
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              enabled: (peer.status == PeerStatus.available),
+              onTap: () => _connectToPeer(context, peer),
+              child: Text('Connect to peer'),
+            ),
+            PopupMenuItem(
+              enabled: (peer.status == PeerStatus.connected),
+              onTap: () => _tryToOpenChat(context, peer),
+              child: Text('Open chat'),
+            ),
+            PopupMenuItem(
+              enabled: (peer.status != PeerStatus.available),
+              onTap: () => _disconnectMe(context, state.p2pInfo),
+              child: Text('Disconnect'),
+            ),
+          ],
           child: ListTile(
             title: Text(peer.deviceName),
             subtitle: Text('${peer.all['primaryDeviceType']} / ${peer.all['deviceAddress']}'),
@@ -65,7 +64,7 @@ class PeerTile extends StatelessWidget {
   }
 
   void _tryToOpenChat(BuildContext context, Peer peer) {
-    context.read<P2pConnectorCubit>().tryToOpenSocket();
+    context.read<P2pConnectorCubit>().tryToOpenSocketChat();
   }
 
   void _disconnectMe(BuildContext context, WifiP2PInfo? p2pInfo) {
