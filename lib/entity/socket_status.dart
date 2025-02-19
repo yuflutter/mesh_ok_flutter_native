@@ -1,4 +1,4 @@
-enum SocketStatus { notConnected, waitingIncoming, connectingToHost, connected }
+enum SocketStatus { notConnected, waitingIncoming, connectingToHost, connected, closed }
 
 extension SocketStatusEx on SocketStatus {
   String get caption => switch (this) {
@@ -6,5 +6,6 @@ extension SocketStatusEx on SocketStatus {
         SocketStatus.waitingIncoming => 'waiting for incoming...',
         SocketStatus.connectingToHost => 'connecting to host...',
         SocketStatus.connected => 'connected',
+        SocketStatus.closed => 'closed',
       };
 }

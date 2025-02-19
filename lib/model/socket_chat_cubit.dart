@@ -31,9 +31,11 @@ class SocketChatCubit extends Cubit<SocketChatState> {
       final url = 'ws://${p2pInfo.groupOwnerAddress}:$_port/ws';
       log.i('connecting to $url ...');
       emit(state.copyWith(socketStatus: SocketStatus.connectingToHost));
+
       _socket = await WebSocket.connect(url);
       log.i('connected');
       emit(state.copyWith(socketStatus: SocketStatus.connected));
+
       _socketSubscription = _socket.listen(
         (msg) async {
           log.i('received message: "$msg"');
@@ -44,51 +46,13 @@ class SocketChatCubit extends Cubit<SocketChatState> {
           close();
         },
         onDone: () {
+          log.i('socket closed');
           close();
         },
-        cancelOnError: true,
       );
     } catch (e, s) {
       log.e(this, e, s);
     }
-
-    // await Future.value();
-    // log.i("connecting to ${p2pInfo.groupOwnerAddress}...");
-    // _socketStatusController.add(SocketStatus.connectingToHost);
-    // final res = await dowl(
-    //   'connectToSocket(${p2pInfo.groupOwnerAddress})',
-    //   () => _conn.connectToSocket(
-    //     groupOwnerAddress: p2pInfo.groupOwnerAddress,
-    //     downloadPath: "/storage/emulated/0/Download/",
-    //     maxConcurrentDownloads: 2,
-    //     // delete incomplete transfered file
-    //     deleteOnError: true,
-    //     onConnect: (address) {
-    //       log.i("connected to: $address");
-    //       _socketStatusController.add(SocketStatus.connected);
-    //     },
-    //     // receive transfer updates for both sending and receiving.
-    //     transferUpdate: (transfer) {
-    //       // transfer.count is the amount of bytes transfered
-    //       // transfer.total is the file size in bytes
-    //       // if transfer.receiving is true, you are receiving the file, else you're sending the file.
-    //       // call `transfer.cancelToken?.cancel()` to cancel transfer. This method is only applicable to receiving transfers.
-    //       log.i(
-    //         "ID: ${transfer.id}, FILENAME: ${transfer.filename}, PATH: ${transfer.path}, COUNT: ${transfer.count}, TOTAL: ${transfer.total}, COMPLETED: ${transfer.completed}, FAILED: ${transfer.failed}, RECEIVING: ${transfer.receiving}",
-    //       );
-    //     },
-    //     receiveString: (msg) async {
-    //       log.i('received string: "$msg"');
-    //       emit(state.copyWith()..messages.add(TextMessage(msg)));
-    //     },
-    //     onCloseSocket: () {
-    //       log.i("socket closed");
-    //       _socketStatusController.add(SocketStatus.notConnected);
-    //     },
-    //   ),
-    // );
-    // if (!res) _socketStatusController.add(SocketStatus.notConnected);
-    // return res;
   }
 
   Future<void> _initHost() async {
@@ -133,13 +97,13 @@ class SocketChatCubit extends Cubit<SocketChatState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     try {
-      // Eсли close() вызвали программно - здесь будет падать
-      emit(state.copyWith(socketStatus: SocketStatus.notConnected));
+      // Eсли close() вызвали принудительно - здесь будет падать
+      emit(state.copyWith(socketStatus: SocketStatus.closed));
     } catch (_) {}
-    _socketSubscription?.cancel();
-    _socket.close();
+    await _socketSubscription?.cancel();
+    await _socket.close();
     return super.close();
   }
 }

@@ -3,13 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '/core/global.dart';
 import '/core/logger.dart';
+import '/entity/wifi_p2p_info.dart';
 
 class P2pInfoRepository {
-  late final SharedPreferences _db;
+  // late final SharedPreferences _db;
 
-  Future<void> init() async {
-    _db = await SharedPreferences.getInstance();
-  }
+  // Future<void> init() async {
+  //   _db = await SharedPreferences.getInstance();
+  // }
 
   // Future<void> saveP2pInfo(WifiP2PInfo data) async {
   //   await _db.setString('$runtimeType', jsonEncode(data.toJson()));

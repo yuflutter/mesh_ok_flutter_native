@@ -15,8 +15,10 @@ import 'socket_chat_cubit.dart';
 
 class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObserver {
   final P2pInfoRepository repository;
+
   late final Platform _platform;
   SocketChatCubit? _socketChatCubit;
+  StreamSubscription? _socketChatStateSubscription;
 
   P2pConnectorCubit({required this.repository}) : super(P2pConnectorState.initial()) {
     _platform = Platform(
@@ -45,12 +47,11 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     await dowl('discoverPeers()', _platform.discoverPeers);
   }
 
-  void _onPeersDiscovered(List result) {
+  void _onPeersDiscovered(List peersJson) {
     final log = global<Logger>();
     try {
-      log.i(result);
-      final peers = result.map((e) => Peer.fromJson(e as String)).toList();
-      log.i('peers: ${peers.length}');
+      log.i('peers(${peersJson.length}): $peersJson');
+      final peers = peersJson.map((e) => Peer.fromJson(e)).toList();
       emit(state.copyWith(peers: peers));
     } catch (e, s) {
       log.e(this, e, s);
@@ -61,11 +62,11 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     await dowl('connectPeer(${peer.deviceName})', () => _platform.connectPeer(peer.deviceAddress));
   }
 
-  void _onP2pInfoChanged(String result) async {
+  void _onP2pInfoChanged(String p2pInfoJson) async {
     final log = global<Logger>();
     try {
-      log.i(result);
-      final p2pInfo = WifiP2PInfo.fromJson(result);
+      log.i(p2pInfoJson);
+      final p2pInfo = WifiP2PInfo.fromJson(p2pInfoJson);
       emit(state.copyWith(p2pInfo: p2pInfo));
       if (state.p2pInfo?.isConnected == true) {
         tryToOpenSocketChat();
@@ -78,23 +79,31 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   void tryToOpenSocketChat() async {
-    await _socketChatCubit?.close();
     if (state.p2pInfo?.isConnected != true) return;
+
+    await _socketChatStateSubscription?.cancel();
+    await _socketChatCubit?.close();
+
     _socketChatCubit = SocketChatCubit(p2pInfo: state.p2pInfo!);
     SocketStatus? oldSocketStatus;
-    _socketChatCubit!
-      ..stream.listen((socketChatState) {
-        final socketStatus = socketChatState.socketStatus;
-        final doOpenChat = (socketStatus != oldSocketStatus && socketStatus == SocketStatus.connected);
-        oldSocketStatus = socketStatus;
-        emit(
-          state.copyWith(
-            socketStatus: socketStatus,
-            doOpenSocketChat: (doOpenChat) ? _socketChatCubit : null,
-          ),
-        );
-      })
-      ..init();
+
+    _socketChatStateSubscription = _socketChatCubit!.stream.listen((socketChatState) {
+      final socketStatus = socketChatState.socketStatus;
+      final doOpenChat = (socketStatus != oldSocketStatus && socketStatus == SocketStatus.connected);
+      oldSocketStatus = socketStatus;
+      emit(
+        state.copyWith(
+          socketStatus: socketStatus,
+          doOpenSocketChat: (doOpenChat) ? _socketChatCubit : null,
+        ),
+      );
+      if (socketStatus == SocketStatus.closed) {
+        _socketChatStateSubscription?.cancel();
+        _socketChatCubit == null;
+      }
+    });
+
+    _socketChatCubit!.init();
   }
 
   Future<void> disconnectMe() async {
