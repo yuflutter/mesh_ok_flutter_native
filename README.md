@@ -1,16 +1,25 @@
-# mesh_ok
+Mesh.OK
 
-A new Flutter project.
+Текстовый чат между двумя устройствами Android через WiFi-direct. Первая попытка реализации на базе плагина flutter_p2p_connection оказалась не вполне удачной. Вот этот код:
+https://github.com/yuflutter/mesh_ok_flutter_pure
+Он работает, но из-за недостатков плагина и полном отсутcтвии обработки сетевых ошибок (все методы платформы возвращают true/false), пришлось отказаться от использования плагина, и переписать сетевую часть на котлин.
 
-## Getting Started
+В итоге на котлин перенесено:
+- Запрос разрешений и включение сетевых сервисов (асинхронный API андроида был преобразован в корутины).
+- Реализация протокола WiFi-direct (кроме определения сетевых служб).
 
-This project is a starting point for a Flutter application.
+На флаттере осталось:
+- Пользовательский интерфейс.
+- Реализация клиентских и серверных вебсокетов.
 
-A few resources to get you started if this is your first Flutter project:
+ТОДО:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Усовершенствовать обработку ошибок, похоже сейчас не всё обрабатывается корректно.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Добавить извлечение сетевого статуса WifiP2pInfo при старте приложения (сейчас приходится переподключаться к пиру для получения колбэка с IP-адресом группы).
+
+- Разобраться, как работает группа P2P, и насколько реально построить MESH.
+
+- Отказаться от прямого использования FlutterView, и оформить котлин-код в соответствии с рекомендациям к нативным плагинам флаттер.
+
+- В перспективе оформить сетевую часть отдельным публичным пакетом, который будет лучше, чем flutter_p2p_connection.
