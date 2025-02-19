@@ -12,9 +12,9 @@ extension DeviceRoleEx on DeviceRole {
 class WifiP2PInfo extends PlatformResult {
   late final bool groupFormed;
   late final bool isGroupOwner;
-  late final String groupOwnerAddress;
+  late final String? groupOwnerAddress;
 
-  bool get isConnected => groupFormed && groupOwnerAddress.isNotEmpty;
+  bool get isConnected => groupFormed && (groupOwnerAddress?.isNotEmpty == true);
 
   DeviceRole get deviceRole => (isGroupOwner) ? DeviceRole.host : DeviceRole.client;
 

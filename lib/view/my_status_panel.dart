@@ -23,39 +23,38 @@ class MyStatusPanel extends StatelessWidget {
             if (!forAppBar) Text('My status:', style: headerTextStyle),
             Padding(
               padding: EdgeInsets.fromLTRB(15, 0, 5, 10),
-              child:
-                  (p2pInfo == null)
-                      ? Text('Unknown')
-                      : (p2pInfo.isError)
+              child: (p2pInfo == null || !p2pInfo.groupFormed)
+                  ? Text('Unknown')
+                  : (p2pInfo.isError)
                       ? Text(p2pInfo.error!)
                       : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Group owner address: ${p2pInfo.groupOwnerAddress}'),
-                          RichText(
-                            text: TextSpan(
-                              text: 'My device role: ',
-                              children: [
-                                TextSpan(
-                                  text: p2pInfo.deviceRole.caption,
-                                  style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                                ),
-                              ],
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Group owner address: ${p2pInfo.groupOwnerAddress}'),
+                            RichText(
+                              text: TextSpan(
+                                text: 'My device role: ',
+                                children: [
+                                  TextSpan(
+                                    text: p2pInfo.deviceRole.caption,
+                                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          RichText(
-                            text: TextSpan(
-                              text: 'Socket status: ',
-                              children: [
-                                TextSpan(
-                                  text: state.socketStatus.caption,
-                                  style: TextStyle(color: Colors.yellowAccent),
-                                ),
-                              ],
+                            RichText(
+                              text: TextSpan(
+                                text: 'Socket status: ',
+                                children: [
+                                  TextSpan(
+                                    text: state.socketStatus.caption,
+                                    style: TextStyle(color: Colors.yellowAccent),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
             ),
           ],
         );

@@ -13,7 +13,8 @@ class Logger with ChangeNotifier {
 
   /// Info
   void i(dynamic info, {bool consoleOnly = false}) {
-    _addLog(_Log('INFO', info.toString()), consoleOnly);
+    _addLog(_Log('', info.toString()), consoleOnly);
+    // _addLog(_Log('INFO', info.toString()), consoleOnly);
   }
 
   /// Warning
@@ -48,14 +49,13 @@ class Logger with ChangeNotifier {
 
   List<String> lastLogs({bool reversed = true, String dateFormat = 'dd.MM HH:mm:ss'}) {
     final df = (dateFormat.isNotEmpty) ? DateFormat(dateFormat) : null;
-    final res =
-        _lastLogs.map<String>((e) {
-          if (df != null) {
-            return '${e.level} [${df.format(e.when)}] ${e.what}';
-          } else {
-            return '${e.level}: ${e.what}';
-          }
-        }).toList();
+    final res = _lastLogs.map<String>((e) {
+      if (df != null) {
+        return '${e.level} [${df.format(e.when)}] ${e.what}';
+      } else {
+        return '${e.level}: ${e.what}';
+      }
+    }).toList();
     return (reversed) ? res.reversed.toList() : res;
   }
 

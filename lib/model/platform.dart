@@ -12,6 +12,7 @@ class Platform {
 
   Future init() => channel.invokeMethod('init');
   Future discoverPeers() => channel.invokeMethod('discoverPeers');
+  Future requestConnectionInfo() => channel.invokeMethod('requestConnectionInfo');
   Future connectPeer(String deviceAddress) => channel.invokeMethod('connectPeer', deviceAddress);
   Future disconnectMe() => channel.invokeMethod('disconnectMe');
 

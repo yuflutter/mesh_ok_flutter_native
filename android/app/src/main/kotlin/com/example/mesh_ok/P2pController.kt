@@ -1,10 +1,10 @@
 package com.example.mesh_ok
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
@@ -47,6 +47,7 @@ class P2pController(
             when (call.method) {
                 "init" -> init(result)
                 "discoverPeers" -> discoverPeers(result)
+                "requestConnectionInfo" -> requestConnectionInfo(result)
                 "connectPeer" -> connectPeer(call.arguments as String, result)
                 "disconnectMe" -> disconnectMe(result)
                 else -> result.notImplemented()
@@ -57,11 +58,18 @@ class P2pController(
         }
     }
 
+    private fun onPeersDiscovered(peersDto: List<String>) =
+        flutterChannel.invokeMethod("onPeersDiscovered", peersDto)
+
+    private fun onP2pInfoChanged(p2pInfo: String) =
+        flutterChannel.invokeMethod("onP2pInfoChanged", p2pInfo)
+
     fun init(result: MethodChannel.Result) {
         // тут что-то было, но ушло в init{}
         result.success(okResult)
     }
 
+    @SuppressLint("MissingPermission")
     private fun discoverPeers(result: MethodChannel.Result? = null) {
         try {
             p2pManager.discoverPeers(p2pChannel, object : WifiP2pManager.ActionListener {
@@ -75,12 +83,13 @@ class P2pController(
                     result?.error(msg, null, null)
                 }
             })
-        } catch (e: SecurityException) {
+        } catch (e: Throwable) {
             loge(e)
             result?.error("$e", null, null)
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun connectPeer(peerAddress: String, result: MethodChannel.Result) {
         val peer = peers.find { it.deviceAddress == peerAddress }
         if (peer == null) {
@@ -100,7 +109,7 @@ class P2pController(
                     result.error(msg, null, null)
                 }
             })
-        } catch (e: SecurityException) {
+        } catch (e: Throwable) {
             loge(e)
             result.error("$e", null, null)
         }
@@ -108,38 +117,34 @@ class P2pController(
 
     private fun disconnectMe(result: MethodChannel.Result) {
         try {
-        if (currentP2pInfo?.isGroupOwner == false) {
-            // TODO: разобраться как удалять самого себя из группы
-            p2pManager.removeGroup(p2pChannel, object : WifiP2pManager.ActionListener {
-                override fun onSuccess() = result.success(okResult)
-                override fun onFailure(reasonCode: Int) {
-                    val msg = "removeGroup() => ${failureReasonMsg(reasonCode)}"
-                    loge(msg)
-                    result.error(msg, null, null)
-                }
-            })
-        } else {
-            p2pManager.removeGroup(p2pChannel, object : WifiP2pManager.ActionListener {
-                override fun onSuccess() = result.success(okResult)
-                override fun onFailure(reasonCode: Int) {
-                    val msg = "removeGroup() => ${failureReasonMsg(reasonCode)}"
-                    loge(msg)
-                    result.error(msg, null, null)
-                }
-            })
-        }} catch (e: Throwable) {
+            if (currentP2pInfo?.isGroupOwner == false) {
+                // TODO: разобраться как удалять самого себя из группы
+                p2pManager.removeGroup(p2pChannel, object : WifiP2pManager.ActionListener {
+                    override fun onSuccess() = result.success(okResult)
+                    override fun onFailure(reasonCode: Int) {
+                        val msg = "removeGroup() => ${failureReasonMsg(reasonCode)}"
+                        loge(msg)
+                        result.error(msg, null, null)
+                    }
+                })
+            } else {
+                p2pManager.removeGroup(p2pChannel, object : WifiP2pManager.ActionListener {
+                    override fun onSuccess() = result.success(okResult)
+                    override fun onFailure(reasonCode: Int) {
+                        val msg = "removeGroup() => ${failureReasonMsg(reasonCode)}"
+                        loge(msg)
+                        result.error(msg, null, null)
+                    }
+                })
+            }
+        } catch (e: Throwable) {
             loge(e)
             result.error("$e", null, null)
         }
     }
 
-    // TODO: Нужно научиться вызывать эту функцию при старте приложения, но где взять intent?
-    private fun checkP2pInfo(intent: Intent) {
-        val networkInfo: NetworkInfo? =
-            intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO) as NetworkInfo?
-        log("NetworkInfo: $networkInfo")
-        if (networkInfo?.isConnected == true) {
-            // We are connected with the other device, request connection info to find group owner IP
+    private fun requestConnectionInfo(result: MethodChannel.Result? = null) {
+        try {
             p2pManager.requestConnectionInfo(p2pChannel) { p2pInfo ->
                 log("WifiP2pInfo: $p2pInfo")
                 // After the group negotiation, we can determine the group owner (server).
@@ -153,14 +158,12 @@ class P2pController(
                     // to the group owner.
                 }
                 currentP2pInfo = p2pInfo
-                flutterChannel.invokeMethod(
-                    "onP2pInfoChanged", p2pInfo.convertObjectToJson()
-                )
+                onP2pInfoChanged(p2pInfo.convertObjectToJson())
+                result?.success(okResult)
             }
-        } else {
-            flutterChannel.invokeMethod(
-                "onP2pInfoChanged", errResult("Disconnected")
-            )
+        } catch (e: Throwable) {
+            loge(e)
+            result?.error("$e", null, null)
         }
     }
 
@@ -171,7 +174,6 @@ class P2pController(
                 // the Activity.
                 WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
                     val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
-//                activity.isWifiP2pEnabled = state == WifiP2pManager.WIFI_P2P_STATE_ENABLED
                     log("WIFI_P2P_STATE_CHANGED_ACTION => $state")
                 }
                 // The peer list has changed! We should probably do something about
@@ -187,7 +189,7 @@ class P2pController(
                             peers.clear()
                             peers.addAll(newPeers)
                             val peersDto = peers.map { it.convertObjectToJson() }.toList()
-                            flutterChannel.invokeMethod("onPeersDiscovered", peersDto)
+                            onPeersDiscovered(peersDto)
 //                            }
                         }
                     } catch (e: SecurityException) {
@@ -199,7 +201,15 @@ class P2pController(
 
                 WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
                     log("WIFI_P2P_CONNECTION_CHANGED")
-                    checkP2pInfo(intent)
+                    val networkInfo =
+                        intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO) as NetworkInfo?
+                    log("NetworkInfo: $networkInfo")
+                    if (networkInfo?.isConnected == true) {
+                        // We are connected with the other device, request connection info to find group owner IP
+                        requestConnectionInfo()
+                    } else {
+                        onP2pInfoChanged(errResult("Disconnected"))
+                    }
                     discoverPeers()
                 }
 
