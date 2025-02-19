@@ -62,7 +62,6 @@ class SocketChatCubit extends Cubit<SocketChatState> {
   Future<void> _initHost() async {
     final log = global<Logger>();
     try {
-      log.i("starting server socket...");
       _httpServer = await HttpServer.bind(p2pInfo.groupOwnerAddress, _port, shared: true);
       log.i("waiting for incoming...");
       emit(state.copyWith(socketStatus: SocketStatus.waitingIncoming));
