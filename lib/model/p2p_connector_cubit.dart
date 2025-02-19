@@ -65,7 +65,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   void _onP2pInfoChanged(String p2pInfoJson) async {
     final log = global<Logger>();
     try {
-      log.i(p2pInfoJson);
+      log.i('P2PInfo: $p2pInfoJson');
       final p2pInfo = WifiP2PInfo.fromJson(p2pInfoJson);
       emit(state.copyWith(p2pInfo: p2pInfo));
       if (state.p2pInfo?.isConnected == true) {
@@ -80,30 +80,34 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
   void tryToOpenSocketChat() async {
     if (state.p2pInfo?.isConnected != true) return;
+    final log = global<Logger>();
+    try {
+      await _socketChatStateSubscription?.cancel();
+      await _socketChatCubit?.close();
 
-    await _socketChatStateSubscription?.cancel();
-    await _socketChatCubit?.close();
+      _socketChatCubit = SocketChatCubit(p2pInfo: state.p2pInfo!);
+      SocketStatus? oldSocketStatus;
 
-    _socketChatCubit = SocketChatCubit(p2pInfo: state.p2pInfo!);
-    SocketStatus? oldSocketStatus;
+      _socketChatStateSubscription = _socketChatCubit!.stream.listen((socketChatState) {
+        final socketStatus = socketChatState.socketStatus;
+        final doOpenChat = (socketStatus != oldSocketStatus && socketStatus == SocketStatus.connected);
+        oldSocketStatus = socketStatus;
+        emit(
+          state.copyWith(
+            socketStatus: socketStatus,
+            doOpenSocketChat: (doOpenChat) ? _socketChatCubit : null,
+          ),
+        );
+        if (socketStatus == SocketStatus.closed) {
+          _socketChatStateSubscription?.cancel();
+          _socketChatCubit == null;
+        }
+      });
 
-    _socketChatStateSubscription = _socketChatCubit!.stream.listen((socketChatState) {
-      final socketStatus = socketChatState.socketStatus;
-      final doOpenChat = (socketStatus != oldSocketStatus && socketStatus == SocketStatus.connected);
-      oldSocketStatus = socketStatus;
-      emit(
-        state.copyWith(
-          socketStatus: socketStatus,
-          doOpenSocketChat: (doOpenChat) ? _socketChatCubit : null,
-        ),
-      );
-      if (socketStatus == SocketStatus.closed) {
-        _socketChatStateSubscription?.cancel();
-        _socketChatCubit == null;
-      }
-    });
-
-    _socketChatCubit!.init();
+      _socketChatCubit!.init();
+    } catch (e, s) {
+      log.e(this, e, s);
+    }
   }
 
   Future<void> disconnectMe() async {

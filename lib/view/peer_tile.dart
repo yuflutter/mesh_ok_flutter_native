@@ -26,7 +26,7 @@ class PeerTile extends StatelessWidget {
               child: Text('Connect to peer'),
             ),
             PopupMenuItem(
-              enabled: (peer.status == PeerStatus.connected),
+              enabled: (peer.status == PeerStatus.connected && state.p2pInfo?.isConnected == true),
               onTap: () => _tryToOpenChat(context, peer),
               child: Text('Open chat'),
             ),

@@ -15,8 +15,10 @@ const _port = 4045;
 class SocketChatCubit extends Cubit<SocketChatState> {
   final WifiP2PInfo p2pInfo;
 
-  late final WebSocket _socket;
+  WebSocket? _socket;
   StreamSubscription? _socketSubscription;
+  HttpServer? _httpServer;
+  StreamSubscription? _httpServerSubscription;
 
   SocketChatCubit({required this.p2pInfo}) : super(SocketChatState.initial());
 
@@ -28,7 +30,8 @@ class SocketChatCubit extends Cubit<SocketChatState> {
   Future<void> _initClient() async {
     final log = global<Logger>();
     try {
-      final url = 'ws://${p2pInfo.groupOwnerAddress}:$_port/ws';
+      // TODO: Узнать, как вытащить сетевое имя меня, и подставить сюда:
+      final url = 'ws://${p2pInfo.groupOwnerAddress}:$_port/ws?as=';
       log.i('connecting to $url ...');
       emit(state.copyWith(socketStatus: SocketStatus.connectingToHost));
 
@@ -36,7 +39,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
       log.i('connected');
       emit(state.copyWith(socketStatus: SocketStatus.connected));
 
-      _socketSubscription = _socket.listen(
+      _socketSubscription = _socket!.listen(
         (msg) async {
           log.i('received message: "$msg"');
           emit(state.copyWith()..messages.add(TextMessage(msg)));
@@ -52,10 +55,50 @@ class SocketChatCubit extends Cubit<SocketChatState> {
       );
     } catch (e, s) {
       log.e(this, e, s);
+      close();
     }
   }
 
   Future<void> _initHost() async {
+    final log = global<Logger>();
+    try {
+      log.i("starting server socket...");
+      _httpServer = await HttpServer.bind(p2pInfo.groupOwnerAddress, _port, shared: true);
+      log.i("waiting for incoming...");
+      emit(state.copyWith(socketStatus: SocketStatus.waitingIncoming));
+
+      _httpServer!.listen(
+        (req) async {
+          // TODO: Входящих соединений может быть много, разобраться с группой p2p
+          if (req.uri.path == '/ws') {
+            _socket = await WebSocketTransformer.upgrade(req);
+            log.i('connected');
+            emit(state.copyWith(socketStatus: SocketStatus.connected));
+            _socketSubscription = _socket!.listen(
+              (msg) async {
+                log.i('received message: "$msg"');
+                emit(state.copyWith()..messages.add(TextMessage(msg)));
+              },
+              onError: (e, s) {
+                log.e(this, e, s);
+                close();
+              },
+              onDone: () {
+                log.i('socket closed');
+                close();
+              },
+            );
+          }
+        },
+        onError: (e, s) {
+          log.e(this, e, s);
+          close();
+        },
+      );
+    } catch (e, s) {
+      log.e(this, e, s);
+    }
+
     // final log = global<Logger>();
     // await Future.value();
     // log.info("starting server socket...");
@@ -92,18 +135,23 @@ class SocketChatCubit extends Cubit<SocketChatState> {
   }
 
   void sendMessage(String msg) {
-    dowl('sendMessage()', () => _socket.add(msg));
+    dowl('sendMessage()', () {
+      _socket!.add(msg);
+      return msg;
+    });
     emit(state.copyWith()..messages.add(TextMessage(msg, isMy: true)));
   }
 
   @override
   Future<void> close() async {
     try {
-      // Eсли close() вызвали принудительно - здесь будет падать
+      // срабатывает, если close() вызвали принудительно, иначе ошибка
       emit(state.copyWith(socketStatus: SocketStatus.closed));
     } catch (_) {}
     await _socketSubscription?.cancel();
-    await _socket.close();
+    await _socket?.close();
+    await _httpServerSubscription?.cancel();
+    await _httpServer?.close();
     return super.close();
   }
 }
