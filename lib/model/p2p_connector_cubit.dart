@@ -17,6 +17,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   final P2pInfoRepository repository;
 
   late final Platform _platform;
+
   SocketChatCubit? _socketChatCubit;
   StreamSubscription? _socketChatStateSubscription;
 
@@ -30,7 +31,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   Future<void> init() async {
     final log = global<Logger>();
     try {
-      // await repository.init();
+      await repository.init();
       await dowl('init()', _platform.init);
       await refreshAll();
       WidgetsBinding.instance.addObserver(this);
@@ -43,7 +44,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     await Future.wait([
       _discoverPeers(),
       _requestConnectionInfo(),
-      _getGroupInfo(),
+      // _getGroupInfo(),
     ]);
   }
 
@@ -79,8 +80,8 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
       if (state.p2pInfo?.isConnected == true) {
         tryToOpenSocketChat();
       }
-      // await repository.saveP2pInfo(p2pInfo); // сохраняем для следующего запуска
-      // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
+      // Перенесено в котлин:
+      // _discoverPeers(); // здесь андроид прекращает поиск пиров, возобновляем
     } catch (e, s) {
       log.e(this, e, s);
     }
@@ -108,7 +109,8 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
         );
         if (socketStatus == SocketStatus.closed) {
           _socketChatStateSubscription?.cancel();
-          _socketChatCubit == null;
+          _socketChatCubit?.close();
+          _socketChatCubit = null;
         }
       });
 
@@ -122,27 +124,14 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     await dowl('disconnectMe()', _platform.disconnectMe);
   }
 
-  Future<void> _getGroupInfo() async {
-    // final groupInfo = await _conn.groupInfo();
-    // global<Logger>().info('groupInfo() => ${groupInfo?.toJson()}');
-    // emit(state.copyWith(p2pGroupInfo: groupInfo));
-  }
-
-  Future<void> removeGroup() async {
-    // await dowl('removeGroup()', _conn.removeGroup);
-    // _discoverPeers(); // андроид прекратил поиск пиров, возобновляем
-  }
-
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     final log = global<Logger>();
     log.i(state);
-    // if (state == AppLifecycleState.paused) {
-    //   // await dowl('unregister()', _conn.unregister);
-    // } else if (state == AppLifecycleState.resumed) {
-    //   await dowl('register()', _conn.register);
-    //   await refreshAll();
-    // }
+    if (state == AppLifecycleState.resumed) {
+      refreshAll();
+    }
+    // смотри котлин, там тоже есть такой обработчик
   }
 
   @override

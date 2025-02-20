@@ -78,15 +78,19 @@ class SocketChatCubit extends Cubit<SocketChatState> {
   }
 
   void sendMessage(String msg) {
-    try {
-      if (_socket == null) throw 'socket allready closed';
-      dowl('sendMessage()', () {
-        _socket!.add(msg);
-        return msg;
-      });
-      emit(state.copyWith()..messages.add(TextMessage(msg, isMy: true)));
-    } catch (e, s) {
-      global<Logger>().e(this, e, s);
+    final log = global<Logger>();
+    if (_socket == null) {
+      log.e(this, 'socket is allready closed');
+    } else {
+      try {
+        dowl('sendMessage()', () {
+          _socket!.add(msg);
+          return msg;
+        });
+        emit(state.copyWith()..messages.add(TextMessage(msg, isMy: true)));
+      } catch (e, s) {
+        log.e(this, e, s);
+      }
     }
   }
 

@@ -18,7 +18,14 @@ class LoggerWidget extends StatelessWidget {
           children: [
             Text('Last logs:', style: headerTextStyle),
             Expanded(
-              child: ListView(children: [...logger.lastLogs(dateFormat: 'mm:ss').map((e) => SelectableText(e))]),
+              child: ListView(children: [
+                ...logger.lastLogs(dateFormat: 'mm:ss').map(
+                      (e) => SelectableText(
+                        e,
+                        style: (e.startsWith('ERROR')) ? TextStyle(color: Colors.redAccent) : null,
+                      ),
+                    )
+              ]),
             ),
           ],
         );

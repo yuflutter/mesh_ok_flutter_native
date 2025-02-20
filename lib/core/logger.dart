@@ -29,7 +29,7 @@ class Logger with ChangeNotifier {
       Object() => source.runtimeType,
       _ => source.toString(),
     };
-    _addLog(_Log('ERROR', 'in $sourceText: $e\n$s'));
+    _addLog(_Log('ERROR', 'in $sourceText: $e${(s != null) ? '\n$s' : ''}'));
   }
 
   void _addLog(_Log l, [bool consoleOnly = false]) {
