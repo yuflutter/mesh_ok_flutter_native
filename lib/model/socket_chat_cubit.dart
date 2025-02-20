@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mesh_ok/app_config.dart';
 
 import '/core/global.dart';
 import '/core/logger.dart';
@@ -9,8 +10,6 @@ import '/entity/socket_status.dart';
 import '/entity/text_message.dart';
 import 'etc/dowl.dart';
 import 'socket_chat_state.dart';
-
-const _port = 4045;
 
 class SocketChatCubit extends Cubit<SocketChatState> {
   final WifiP2PInfo p2pInfo;
@@ -29,9 +28,10 @@ class SocketChatCubit extends Cubit<SocketChatState> {
 
   Future<void> _initClient() async {
     final log = global<Logger>();
+    final port = global<AppConfig>().websocketPort;
     try {
       // TODO: Узнать, как вытащить (изменить?) сетевое имя меня, и подставить сюда:
-      final url = 'ws://${p2pInfo.groupOwnerAddress}:$_port/ws?as=';
+      final url = 'ws://${p2pInfo.groupOwnerAddress}:$port/ws?as=';
       log.i('connecting to $url ...');
       emit(state.copyWith(socketStatus: SocketStatus.connectingToHost));
 
@@ -48,8 +48,9 @@ class SocketChatCubit extends Cubit<SocketChatState> {
 
   Future<void> _initHost() async {
     final log = global<Logger>();
+    final port = global<AppConfig>().websocketPort;
     try {
-      _httpServer = await HttpServer.bind(p2pInfo.groupOwnerAddress, _port, shared: true);
+      _httpServer = await HttpServer.bind(p2pInfo.groupOwnerAddress, port, shared: true);
       log.i("waiting for incoming...");
       emit(state.copyWith(socketStatus: SocketStatus.waitingIncoming));
 
@@ -87,7 +88,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
           _socket!.add(msg);
           return msg;
         });
-        emit(state.copyWith()..messages.add(TextMessage(msg, isMy: true)));
+        emit(state.copyWith()..messages.add(TextMessage(message: msg, isMy: true)));
       } catch (e, s) {
         log.e(this, e, s);
       }
@@ -99,7 +100,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
     _socketSubscription = _socket!.listen(
       (msg) async {
         log.i('received message: "$msg"');
-        emit(state.copyWith()..messages.add(TextMessage(msg)));
+        emit(state.copyWith()..messages.add(TextMessage(message: msg)));
       },
       onError: (e, s) {
         log.e(this, e, s);

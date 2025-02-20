@@ -14,12 +14,12 @@ class Logger with ChangeNotifier {
   /// Info
   void i(dynamic info, {bool consoleOnly = false}) {
     _addLog(_Log('', info.toString()), consoleOnly);
-    // _addLog(_Log('INFO', info.toString()), consoleOnly);
+    // _addLog(_Log('INFO ', info.toString()), consoleOnly);
   }
 
   /// Warning
   void w(dynamic warn, {bool consoleOnly = false}) {
-    _addLog(_Log('WARN', warn.toString()), consoleOnly);
+    _addLog(_Log('WARN ', warn.toString()), consoleOnly);
   }
 
   /// Error
@@ -29,17 +29,17 @@ class Logger with ChangeNotifier {
       Object() => source.runtimeType,
       _ => source.toString(),
     };
-    _addLog(_Log('ERROR', 'in $sourceText: $e${(s != null) ? '\n$s' : ''}'));
+    _addLog(_Log('ERROR ', 'in $sourceText: $e${(s != null) ? '\n$s' : ''}'));
   }
 
-  void _addLog(_Log l, [bool consoleOnly = false]) {
+  void _addLog(_Log log, [bool consoleOnly = false]) {
     if (kDebugMode) {
-      dev.log(l.toString());
+      dev.log(log.toConsole());
     } else {
-      print(l.toString());
+      print(log.toConsole());
     }
     if (!consoleOnly) {
-      _lastLogs.add(l);
+      _lastLogs.add(log);
       if (_lastLogs.length > _maxLogsSaved) {
         _lastLogs.removeAt(0);
       }
@@ -51,9 +51,9 @@ class Logger with ChangeNotifier {
     final df = (dateFormat.isNotEmpty) ? DateFormat(dateFormat) : null;
     final res = _lastLogs.map<String>((e) {
       if (df != null) {
-        return '${e.level} [${df.format(e.when)}] ${e.what}';
+        return '${e.level}[${df.format(e.when)}] ${e.what}';
       } else {
-        return '${e.level}: ${e.what}';
+        return '${e.level}${e.what}';
       }
     }).toList();
     return (reversed) ? res.reversed.toList() : res;
@@ -65,15 +65,13 @@ class Logger with ChangeNotifier {
   }
 }
 
-final _defaultDateFommat = DateFormat('dd.MM HH:mm:ss');
-
 class _Log {
-  String level;
-  DateTime when;
-  String what;
+  final String level;
+  final DateTime when;
+  final String what;
+  static final _consoleDateFormat = DateFormat('dd.MM HH:mm:ss');
 
   _Log(this.level, this.what) : when = DateTime.now();
 
-  @override
-  String toString() => '$level [${_defaultDateFommat.format(when)}] $what';
+  String toConsole() => '$level[${_consoleDateFormat.format(when)}] $what';
 }
