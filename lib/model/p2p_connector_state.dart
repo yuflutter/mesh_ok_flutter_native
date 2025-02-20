@@ -8,7 +8,7 @@ class P2pConnectorState {
   final WifiP2PInfo? p2pInfo;
   // final WifiP2PGroupInfo? p2pGroupInfo;
   final SocketStatus socketStatus;
-  // одноразовый сигнал успешной установки нового соединения:
+  // одноразовый сигнал успешной установки соединения:
   final SocketChatCubit? doOpenSocketChat;
   final String? userErrorMsg;
 
@@ -36,7 +36,7 @@ class P2pConnectorState {
         p2pInfo: p2pInfo ?? this.p2pInfo,
         // p2pGroupInfo: p2pGroupInfo ?? this.p2pGroupInfo,
         socketStatus: socketStatus ?? this.socketStatus,
-        // сбрасываем одноразовый сигнал:
+        // сбрасываем одноразовый сигнал при следующем копировании:
         doOpenSocketChat: doOpenSocketChat ?? null,
         userErrorMsg: userErrorMsg ?? this.userErrorMsg,
       );

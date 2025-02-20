@@ -31,5 +31,6 @@ class Platform {
       }
     });
   }
+
   void close() => channel.setMethodCallHandler(null);
 }
