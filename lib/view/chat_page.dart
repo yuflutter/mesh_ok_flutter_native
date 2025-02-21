@@ -60,7 +60,7 @@ class _ChatPageState extends State<ChatPage> {
                             ],
                           ),
                         ),
-                        TextFormField(controller: _msgController, autofocus: true, onFieldSubmitted: _senfMessage),
+                        TextFormField(controller: _msgController, autofocus: true, onFieldSubmitted: _sendMessage),
                         SizedBox(height: 8),
                         if (MediaQuery.of(context).viewInsets.bottom == 0) Expanded(child: LoggerWidget()),
                       ],
@@ -75,7 +75,7 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  void _senfMessage(String msg) {
+  void _sendMessage(String msg) {
     widget.socketChatCubit.sendMessage(msg);
     _msgController.clear();
   }

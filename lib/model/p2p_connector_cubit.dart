@@ -42,18 +42,10 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
   Future<void> refreshAll() async {
     await Future.wait([
-      _discoverPeers(),
-      _requestConnectionInfo(),
+      _platform.discoverPeers(),
+      _platform.requestConnectionInfo(),
       // _getGroupInfo(),
     ]);
-  }
-
-  Future<void> _discoverPeers() async {
-    await dowl('discoverPeers()', _platform.discoverPeers);
-  }
-
-  Future<void> _requestConnectionInfo() async {
-    await dowl('requestConnectionInfo()', _platform.requestConnectionInfo);
   }
 
   void _onPeersDiscovered(List peersJson) {
@@ -67,9 +59,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     }
   }
 
-  Future<void> connectPeer(Peer peer) async {
-    await dowl('connectPeer(${peer.deviceName})', () => _platform.connectPeer(peer.deviceAddress));
-  }
+  Future<void> connectPeer(Peer peer) => _platform.connectPeer(peer.deviceName);
 
   void _onP2pInfoChanged(String p2pInfoJson) async {
     final log = global<Logger>();
@@ -99,7 +89,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
       _socketChatStateSubscription = _socketChatCubit!.stream.listen((socketChatState) {
         final socketStatus = socketChatState.socketStatus;
-        final doOpenChat = (socketStatus != oldSocketStatus && socketStatus == SocketStatus.connected);
+        final doOpenChat = (socketStatus == SocketStatus.connected && socketStatus != oldSocketStatus);
         oldSocketStatus = socketStatus;
         emit(
           state.copyWith(

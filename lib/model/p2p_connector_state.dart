@@ -1,6 +1,7 @@
 import '/entity/peer.dart';
 import '/entity/wifi_p2p_info.dart';
 import '/entity/socket_status.dart';
+import '/entity/device_role.dart';
 import 'socket_chat_cubit.dart';
 
 class P2pConnectorState {
@@ -11,6 +12,8 @@ class P2pConnectorState {
   // одноразовый сигнал успешной установки соединения:
   final SocketChatCubit? doOpenSocketChat;
   final String? userErrorMsg;
+
+  DeviceRole get deviceRole => p2pInfo?.deviceRole ?? DeviceRole.notConnected;
 
   P2pConnectorState._({
     this.peers = const [],

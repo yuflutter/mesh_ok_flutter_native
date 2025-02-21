@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '/core/theme_elements.dart';
-import '/entity/wifi_p2p_info.dart';
+import '/entity/device_role.dart';
 import '/entity/socket_status.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/model/p2p_connector_state.dart';
@@ -36,7 +36,7 @@ class MyStatusPanel extends StatelessWidget {
                                 text: 'My device role: ',
                                 children: [
                                   TextSpan(
-                                    text: p2pInfo.deviceRole.caption,
+                                    text: state.deviceRole.caption,
                                     style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
                                   ),
                                 ],

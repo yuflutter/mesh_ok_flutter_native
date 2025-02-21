@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mesh_ok/app_config.dart';
 
+import '/app_config.dart';
 import '/core/global.dart';
 import '/core/logger.dart';
+import '/entity/device_role.dart';
 import '/entity/wifi_p2p_info.dart';
 import '/entity/socket_status.dart';
 import '/entity/text_message.dart';
@@ -24,6 +25,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
   Future<void> init() => switch (p2pInfo.deviceRole) {
         DeviceRole.client => _initClient(),
         DeviceRole.host => _initHost(),
+        DeviceRole.notConnected => throw 'device is not connected, bld!',
       };
 
   Future<void> _initClient() async {
