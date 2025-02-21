@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
                   },
                   items: [
                     BottomNavigationBarItem(label: 'Clear log', icon: Icon(Icons.clear)),
-                    BottomNavigationBarItem(label: 'Refresh', icon: Icon(Icons.refresh)),
+                    BottomNavigationBarItem(label: 'Refresh all', icon: Icon(Icons.refresh)),
                   ],
                 ),
               ),

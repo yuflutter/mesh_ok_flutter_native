@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.NetworkInfo
+import android.net.wifi.WifiManager
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
@@ -24,6 +25,8 @@ class P2pController(
 
     private val p2pManager = activity.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
     private val p2pChannel = p2pManager.initialize(activity, activity.mainLooper, null)
+//    private val wifiManager =
+//        activity.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
     val intentFilter = IntentFilter()
     val broadcastReceiver = P2pBroadcastReceiver()
@@ -117,8 +120,9 @@ class P2pController(
 
     private fun disconnectMe(result: MethodChannel.Result) {
         try {
+            // роль сервера
             if (currentP2pInfo?.isGroupOwner == false) {
-                // TODO: разобраться как удалять самого себя из группы
+                // TODO: разобраться как правильно удалить себя из группы, не удаляя группу
                 p2pManager.removeGroup(p2pChannel, object : WifiP2pManager.ActionListener {
                     override fun onSuccess() = result.success(okResult)
                     override fun onFailure(reasonCode: Int) {
@@ -127,7 +131,8 @@ class P2pController(
                         result.error(msg, null, null)
                     }
                 })
-            } else {
+                // роль клиента
+            } else if (currentP2pInfo?.isGroupOwner == true) {
                 p2pManager.removeGroup(p2pChannel, object : WifiP2pManager.ActionListener {
                     override fun onSuccess() = result.success(okResult)
                     override fun onFailure(reasonCode: Int) {
@@ -158,9 +163,15 @@ class P2pController(
                     // to the group owner.
                 }
                 currentP2pInfo = p2pInfo
-                onP2pInfoChanged(p2pInfo.convertObjectToJson())
+//                currentNetworkConnectionInfo = NetworkConnectionInfo(
+//                    p2pInfo = p2pInfo,
+//                    wifiInfo = wifiManager.connectionInfo,
+//                    ssid = wifiManager.connectionInfo.ssid,
+//                )
+                onP2pInfoChanged(currentP2pInfo.convertObjectToJson())
                 result?.success(okResult)
             }
+
         } catch (e: Throwable) {
             loge(e)
             result?.error("$e", null, null)
@@ -170,14 +181,12 @@ class P2pController(
     inner class P2pBroadcastReceiver() : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                // Determine if Wi-Fi Direct mode is enabled or not, alert
-                // the Activity.
+                // Determine if Wi-Fi Direct mode is enabled or not
                 WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
                     val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
                     log("WIFI_P2P_STATE_CHANGED_ACTION => $state")
                 }
-                // The peer list has changed! We should probably do something about
-                // @OptIn(ExperimentalSerializationApi::class) that.
+
                 WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
                     log("WIFI_P2P_PEERS_CHANGED_ACTION")
                     try {
@@ -215,13 +224,10 @@ class P2pController(
 
                 WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {
                     log("WIFI_P2P_THIS_DEVICE_CHANGE")
-//                (activity.supportFragmentManager.findFragmentById(R.id.frag_list) as DeviceListFragment)
-//                    .apply {
-//                        updateThisDevice(
-//                            intent.getParcelableExtra(
-//                                WifiP2pManager.EXTRA_WIFI_P2P_DEVICE) as WifiP2pDevice
-//                        )
-//                    }
+                    val p2pDevice = intent.getParcelableExtra(
+                        WifiP2pManager.EXTRA_WIFI_P2P_DEVICE
+                    ) as WifiP2pDevice?
+                    log(p2pDevice.convertObjectToJson())
                 }
             }
         }
