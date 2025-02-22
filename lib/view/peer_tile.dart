@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '/entity/peer.dart';
+import '/entity/wifi_p2p_device.dart';
 import '/entity/wifi_p2p_info.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/model/p2p_connector_state.dart';
 import 'etc/confirm_dialog.dart';
 
 class PeerTile extends StatelessWidget {
-  final Peer peer;
+  final WifiP2pDevice peer;
 
   const PeerTile({super.key, required this.peer});
 
@@ -55,7 +55,7 @@ class PeerTile extends StatelessWidget {
     );
   }
 
-  void _connectToPeer(BuildContext context, Peer peer) {
+  void _connectToPeer(BuildContext context, WifiP2pDevice peer) {
     showConfirmDialog(
       context,
       title: 'Connect to "${peer.deviceName}"?',
@@ -63,7 +63,7 @@ class PeerTile extends StatelessWidget {
     );
   }
 
-  void _tryToOpenChat(BuildContext context, Peer peer) {
+  void _tryToOpenChat(BuildContext context, WifiP2pDevice peer) {
     context.read<P2pConnectorCubit>().tryToOpenSocketChat();
   }
 

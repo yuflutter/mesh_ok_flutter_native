@@ -3,14 +3,16 @@ import 'peer_status.dart';
 
 export 'peer_status.dart';
 
-class Peer extends PlatformResult {
+class WifiP2pDevice extends PlatformResult {
   late final String deviceName;
   late final String deviceAddress;
+  late final String primaryDeviceType;
   late final PeerStatus status;
 
-  Peer.fromJson(super.json) : super.fromJson() {
+  WifiP2pDevice.fromJson(super.json) : super.fromJson() {
     deviceName = all['deviceName'] as String;
     deviceAddress = all['deviceAddress'] as String;
+    primaryDeviceType = all['primaryDeviceType'] as String? ?? '';
     status = PeerStatus.fromId(all['status'] as int);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:mesh_ok/entity/wifi_p2p_device.dart';
 
 import '/core/global.dart';
 import '/core/logger.dart';
@@ -30,10 +31,10 @@ class Platform {
     });
   }
 
-  Future init() => _dowl('init');
+  Future<WifiP2pDevice> init() async => WifiP2pDevice.fromJson(await _dowl('init'));
   Future discoverPeers() => _dowl('discoverPeers');
   Future requestConnectionInfo() => _dowl('requestConnectionInfo');
-  Future connectPeer(String deviceAddress) => _dowl('connectPeer', deviceAddress);
+  Future connectPeer(WifiP2pDevice peer) => _dowl('connectPeer', peer.deviceAddress);
   Future disconnectMe() => _dowl('disconnectMe');
 
   // Выполняет функцию и логирует её вызов и результат (do with log)

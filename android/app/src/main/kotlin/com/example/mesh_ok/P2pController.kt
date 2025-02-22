@@ -6,12 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.NetworkInfo
-import android.net.wifi.WifiManager
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pInfo
 import android.net.wifi.p2p.WifiP2pManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -68,8 +69,8 @@ class P2pController(
         flutterChannel.invokeMethod("onP2pInfoChanged", p2pInfo)
 
     fun init(result: MethodChannel.Result) {
-        // тут что-то было, но ушло в init{}
-        result.success(okResult)
+        requestDeviceInfo(result)
+//        result.success(okResult)
     }
 
     @SuppressLint("MissingPermission")
@@ -171,14 +172,27 @@ class P2pController(
                 onP2pInfoChanged(currentP2pInfo.convertObjectToJson())
                 result?.success(okResult)
             }
-
         } catch (e: Throwable) {
             loge(e)
             result?.error("$e", null, null)
         }
     }
 
+    @SuppressLint("MissingPermission")
+    private fun requestDeviceInfo(result: MethodChannel.Result) {
+        try {
+            p2pManager.requestDeviceInfo(p2pChannel) { deviceInfo ->
+                log("WifiP2pInfo: $deviceInfo")
+                result.success(deviceInfo.convertObjectToJson());
+            }
+        } catch (e: Throwable) {
+            loge(e)
+            result.error("$e", null, null)
+        }
+    }
+
     inner class P2pBroadcastReceiver() : BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 // Determine if Wi-Fi Direct mode is enabled or not
@@ -201,8 +215,6 @@ class P2pController(
                             onPeersDiscovered(peersDto)
 //                            }
                         }
-                    } catch (e: SecurityException) {
-                        loge(e)
                     } catch (e: Exception) {
                         loge(e)
                     }
@@ -223,11 +235,9 @@ class P2pController(
                 }
 
                 WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {
-                    log("WIFI_P2P_THIS_DEVICE_CHANGE")
-                    val p2pDevice = intent.getParcelableExtra(
-                        WifiP2pManager.EXTRA_WIFI_P2P_DEVICE
-                    ) as WifiP2pDevice?
-                    log(p2pDevice.convertObjectToJson())
+                    val p2pDevice =
+                        intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE) as WifiP2pDevice?
+                    log("WIFI_P2P_THIS_DEVICE_CHANGE => ${p2pDevice.convertObjectToJson()}")
                 }
             }
         }

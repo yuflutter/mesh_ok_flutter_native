@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '/core/global.dart';
 import '/core/logger.dart';
-import '/entity/peer.dart';
+import '/entity/wifi_p2p_device.dart';
 import '/entity/wifi_p2p_info.dart';
 import '/entity/socket_status.dart';
 import '/data/p2p_info_repository.dart';
@@ -32,7 +32,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     final log = global<Logger>();
     try {
       await repository.init();
-      await dowl('init()', _platform.init);
+      emit(state.copyWith(me: await _platform.init()));
       await refreshAll();
       WidgetsBinding.instance.addObserver(this);
     } catch (e, s) {
@@ -52,14 +52,14 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
     final log = global<Logger>();
     try {
       log.i('peers(${peersJson.length}): $peersJson');
-      final peers = peersJson.map((e) => Peer.fromJson(e)).toList();
+      final peers = peersJson.map((e) => WifiP2pDevice.fromJson(e)).toList();
       emit(state.copyWith(peers: peers));
     } catch (e, s) {
       log.e(this, e, s);
     }
   }
 
-  Future<void> connectPeer(Peer peer) => _platform.connectPeer(peer.deviceName);
+  Future<void> connectPeer(WifiP2pDevice peer) => _platform.connectPeer(peer);
 
   void _onP2pInfoChanged(String p2pInfoJson) async {
     final log = global<Logger>();
@@ -84,7 +84,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
       await _socketChatStateSubscription?.cancel();
       await _socketChatCubit?.close();
 
-      _socketChatCubit = SocketChatCubit(p2pInfo: state.p2pInfo!);
+      _socketChatCubit = SocketChatCubit(p2pDevice: state.me!, p2pInfo: state.p2pInfo!);
       SocketStatus? oldSocketStatus;
 
       _socketChatStateSubscription = _socketChatCubit!.stream.listen((socketChatState) {

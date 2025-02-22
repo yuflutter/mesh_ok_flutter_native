@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mesh_ok/entity/wifi_p2p_device.dart';
 
 import '/app_config.dart';
 import '/core/global.dart';
@@ -13,6 +14,7 @@ import 'etc/dowl.dart';
 import 'socket_chat_state.dart';
 
 class SocketChatCubit extends Cubit<SocketChatState> {
+  final WifiP2pDevice p2pDevice;
   final WifiP2PInfo p2pInfo;
 
   WebSocket? _socket;
@@ -20,7 +22,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
   HttpServer? _httpServer;
   StreamSubscription? _httpServerSubscription;
 
-  SocketChatCubit({required this.p2pInfo}) : super(SocketChatState.initial());
+  SocketChatCubit({required this.p2pDevice, required this.p2pInfo}) : super(SocketChatState.initial());
 
   Future<void> init() => switch (p2pInfo.deviceRole) {
         DeviceRole.client => _initClient(),
@@ -87,7 +89,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
     } else {
       try {
         dowl('sendMessage()', () {
-          _socket!.add(msg);
+          _socket!.add('${p2pDevice.deviceName}: $msg');
           return msg;
         });
         emit(state.copyWith()..messages.add(TextMessage(message: msg, isMy: true)));

@@ -23,38 +23,56 @@ class MyStatusPanel extends StatelessWidget {
             if (!forAppBar) Text('My status:', style: headerTextStyle),
             Padding(
               padding: EdgeInsets.fromLTRB(15, 0, 5, 10),
-              child: (p2pInfo == null || !p2pInfo.groupFormed)
-                  ? Text('Unknown')
-                  : (p2pInfo.isError)
-                      ? Text(p2pInfo.error!)
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (state.me == null)
+                    Text('Unknown')
+                  else ...[
+                    if (!forAppBar)
+                      RichText(
+                        text: TextSpan(
+                          text: 'My device name: ',
                           children: [
-                            Text('Group owner address: ${p2pInfo.groupOwnerAddress}'),
-                            RichText(
-                              text: TextSpan(
-                                text: 'My device role: ',
-                                children: [
-                                  TextSpan(
-                                    text: state.deviceRole.caption,
-                                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            RichText(
-                              text: TextSpan(
-                                text: 'Socket status: ',
-                                children: [
-                                  TextSpan(
-                                    text: state.socketStatus.caption,
-                                    style: TextStyle(color: Colors.yellowAccent),
-                                  ),
-                                ],
-                              ),
+                            TextSpan(
+                              text: state.me!.deviceName,
+                              style: TextStyle(color: Colors.greenAccent),
+                            )
+                          ],
+                        ),
+                      ),
+                    if (p2pInfo?.isError == true)
+                      Text(p2pInfo!.error!)
+                    else if (p2pInfo?.isConnected != true)
+                      Text("Not connected")
+                    else ...[
+                      RichText(text: TextSpan(text: 'Group owner address: ${p2pInfo!.groupOwnerAddress}')),
+                      RichText(
+                        text: TextSpan(
+                          text: 'My device role: ',
+                          children: [
+                            TextSpan(
+                              text: state.deviceRole.caption,
+                              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
+                      ),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Socket status: ',
+                          children: [
+                            TextSpan(
+                              text: state.socketStatus.caption,
+                              style: TextStyle(color: Colors.yellowAccent),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ]
+                  ],
+                ],
+              ),
             ),
           ],
         );
