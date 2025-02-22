@@ -46,7 +46,6 @@ class MyStatusPanel extends StatelessWidget {
                     else if (p2pInfo?.isConnected != true)
                       Text("Not connected")
                     else ...[
-                      RichText(text: TextSpan(text: 'Group owner address: ${p2pInfo!.groupOwnerAddress}')),
                       RichText(
                         text: TextSpan(
                           text: 'My device role: ',
@@ -56,6 +55,11 @@ class MyStatusPanel extends StatelessWidget {
                               style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
                             ),
                           ],
+                        ),
+                      ),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Group owner address: ${p2pInfo!.groupOwnerAddress}',
                         ),
                       ),
                       RichText(

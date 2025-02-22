@@ -31,13 +31,6 @@ class _ChatPageState extends State<ChatPage> {
               return Scaffold(
                 appBar: AppBar(
                   title: DefaultTextStyle(style: TextStyle(), child: MyStatusPanel(forAppBar: true)),
-                  // title: Column(
-                  //   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  //   children: [
-                  //     Text(connector.p2pGroupInfo?.groupNetworkName ?? 'groupNetworkName???'),
-                  //     Text(connector.p2pInfo?.groupOwnerAddress ?? 'groupOwnerAddress???', style: headerTextStyle),
-                  //   ],
-                  // ),
                 ),
                 body: SafeArea(
                   child: Padding(
@@ -51,10 +44,21 @@ class _ChatPageState extends State<ChatPage> {
                             children: [
                               ...socket.messages.reversed.map(
                                 (m) => ListTile(
-                                  title: Container(
-                                    alignment: (m.isMy) ? Alignment.centerRight : Alignment.centerLeft,
-                                    child: Text(m.message),
-                                  ),
+                                  title: (m.from == connector.me?.deviceName)
+                                      ? Container(
+                                          alignment: Alignment.centerRight,
+                                          child: Text(m.text),
+                                        )
+                                      : Container(
+                                          alignment: Alignment.centerLeft,
+                                          child: RichText(
+                                            text: TextSpan(
+                                              text: '${m.from}: ',
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                              children: [TextSpan(text: m.text)],
+                                            ),
+                                          ),
+                                        ),
                                 ),
                               ),
                             ],

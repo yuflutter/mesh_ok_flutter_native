@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mesh_ok/entity/wifi_p2p_device.dart';
 
 import '/app_config.dart';
 import '/core/global.dart';
@@ -10,7 +9,7 @@ import '/entity/device_role.dart';
 import '/entity/wifi_p2p_info.dart';
 import '/entity/socket_status.dart';
 import '/entity/text_message.dart';
-import 'etc/dowl.dart';
+import '/entity/wifi_p2p_device.dart';
 import 'socket_chat_state.dart';
 
 class SocketChatCubit extends Cubit<SocketChatState> {
@@ -34,8 +33,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
     final log = global<Logger>();
     final port = global<AppConfig>().websocketPort;
     try {
-      // TODO: Узнать, как вытащить (изменить?) сетевое имя меня, и подставить сюда:
-      final url = 'ws://${p2pInfo.groupOwnerAddress}:$port/ws?as=';
+      final url = 'ws://${p2pInfo.groupOwnerAddress}:$port/ws?me=${p2pDevice.deviceName}';
       log.i('connecting to $url ...');
       emit(state.copyWith(socketStatus: SocketStatus.connectingToHost));
 
@@ -65,6 +63,7 @@ class SocketChatCubit extends Cubit<SocketChatState> {
             _socket = await WebSocketTransformer.upgrade(req);
             log.i('connection received from address ${req.connectionInfo?.remoteAddress}');
             emit(state.copyWith(socketStatus: SocketStatus.connected));
+
             _listenForMessages();
           }
         },
@@ -82,17 +81,15 @@ class SocketChatCubit extends Cubit<SocketChatState> {
     }
   }
 
-  void sendMessage(String msg) {
+  void sendMessage(String text) {
     final log = global<Logger>();
     if (_socket == null) {
       log.e(this, 'socket is allready closed');
     } else {
       try {
-        dowl('sendMessage()', () {
-          _socket!.add('${p2pDevice.deviceName}: $msg');
-          return msg;
-        });
-        emit(state.copyWith()..messages.add(TextMessage(message: msg, isMy: true)));
+        final msg = TextMessage(from: p2pDevice.deviceName, text: text);
+        _socket!.add(msg.toJson());
+        emit(state.copyWith()..messages.add(msg));
       } catch (e, s) {
         log.e(this, e, s);
       }
@@ -101,20 +98,21 @@ class SocketChatCubit extends Cubit<SocketChatState> {
 
   void _listenForMessages() {
     final log = global<Logger>();
-    _socketSubscription = _socket!.listen(
-      (msg) async {
-        log.i('received message: "$msg"');
-        emit(state.copyWith()..messages.add(TextMessage(message: msg)));
-      },
-      onError: (e, s) {
+    _socketSubscription = _socket!.listen((json) async {
+      log.i('received message: "$json"');
+      try {
+        final msg = TextMessage.fromJson(json);
+        emit(state.copyWith()..messages.add(msg));
+      } catch (e, s) {
         log.e(this, e, s);
-        close();
-      },
-      onDone: () {
-        log.i('socket closed by peer');
-        close();
-      },
-    );
+      }
+    }, onError: (e, s) {
+      log.e(this, e, s);
+      close();
+    }, onDone: () {
+      log.i('socket closed by peer');
+      close();
+    });
   }
 
   @override

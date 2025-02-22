@@ -40,7 +40,7 @@ class Platform {
   // Выполняет функцию и логирует её вызов и результат (do with log)
   Future _dowl(String methodName, [dynamic arguments]) async {
     final res = await _channel.invokeMethod(methodName, arguments);
-    _log.i('$methodName($arguments) => $res');
+    _log.i('$methodName(${arguments ?? ''}) => $res');
     return res;
   }
 
