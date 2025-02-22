@@ -11,8 +11,6 @@ import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pInfo
 import android.net.wifi.p2p.WifiP2pManager
-import android.os.Build
-import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -26,8 +24,6 @@ class P2pController(
 
     private val p2pManager = activity.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
     private val p2pChannel = p2pManager.initialize(activity, activity.mainLooper, null)
-//    private val wifiManager =
-//        activity.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
     val intentFilter = IntentFilter()
     val broadcastReceiver = P2pBroadcastReceiver()
@@ -46,7 +42,7 @@ class P2pController(
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
     }
 
-    suspend fun handleMethod(call: MethodCall, result: MethodChannel.Result) {
+    fun handleMethod(call: MethodCall, result: MethodChannel.Result) {
         try {
             when (call.method) {
                 "init" -> init(result)
@@ -68,9 +64,17 @@ class P2pController(
     private fun onP2pInfoChanged(p2pInfo: String) =
         flutterChannel.invokeMethod("onP2pInfoChanged", p2pInfo)
 
+    @SuppressLint("MissingPermission")
     fun init(result: MethodChannel.Result) {
-        requestDeviceInfo(result)
-//        result.success(okResult)
+        try {
+            p2pManager.requestDeviceInfo(p2pChannel) { deviceInfo ->
+                log("WifiP2pDevice: $deviceInfo")
+                result.success(deviceInfo.convertObjectToJson())
+            }
+        } catch (e: Throwable) {
+            loge(e)
+            result.error("$e", null, null)
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -175,19 +179,6 @@ class P2pController(
         } catch (e: Throwable) {
             loge(e)
             result?.error("$e", null, null)
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun requestDeviceInfo(result: MethodChannel.Result) {
-        try {
-            p2pManager.requestDeviceInfo(p2pChannel) { deviceInfo ->
-                log("WifiP2pInfo: $deviceInfo")
-                result.success(deviceInfo.convertObjectToJson());
-            }
-        } catch (e: Throwable) {
-            loge(e)
-            result.error("$e", null, null)
         }
     }
 

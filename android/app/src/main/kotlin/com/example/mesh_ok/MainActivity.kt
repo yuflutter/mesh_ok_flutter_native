@@ -13,6 +13,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -49,7 +50,10 @@ class MainActivity : FlutterActivity() {
         requestWifi() // WiFi включается долго, поэтому проверяем результат не здесь, а в конце
         requestLocation()
         var err = ""
-        if (wifiNotEnabled()) err += "WiFi is not turned on!\n"
+        if (wifiNotEnabled()) {
+            delay(3000)
+            if (wifiNotEnabled()) err += "WiFi is not turned on!\n"
+        }
         if (locationNotEnabled()) err += "Location is not turned on!\n"
         if (err.isNotEmpty()) throw Exception(err)
         Global.p2pController!!.init(result)
