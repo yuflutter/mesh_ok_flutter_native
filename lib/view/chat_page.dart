@@ -120,11 +120,11 @@ class _ChatPageState extends State<ChatPage> {
                       if (MediaQuery.of(context).viewInsets.bottom != 0)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 0, 0, 17),
-                          // child: FloatingActionButton.small(
-                          child: IconButton.filled(
+                          child: FloatingActionButton.small(
+                            // child: IconButton.filled(
                             onPressed: _sendMessage,
                             tooltip: 'Send message',
-                            icon: Icon(Icons.send),
+                            child: Icon(Icons.send),
                           ),
                         ),
                     ],
