@@ -1,4 +1,3 @@
-// Реализация сильных enum через sealed classes
 sealed class PeerStatus {
   int id;
   String name;

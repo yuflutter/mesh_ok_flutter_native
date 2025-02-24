@@ -71,7 +71,8 @@ class PeerTile extends StatelessWidget {
   void _disconnectMe(BuildContext context, WifiP2PInfo? p2pInfo) {
     showConfirmDialog(
       context,
-      title: (p2pInfo?.isGroupOwner == true) ? 'Remove group?' : 'Disconnect from group?',
+      title: 'Disconnect from ${peer.deviceName}?',
+      // title: (p2pInfo?.isGroupOwner == true) ? 'Remove group?' : 'Disconnect from group?',
       action: context.read<P2pConnectorCubit>().disconnectMe,
     );
   }

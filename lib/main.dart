@@ -13,7 +13,7 @@ void main() {
   // Инстансы, которые должны быть глобально доступны вне BuildContext, инжектим в Global.
   Global.putAll([
     AppConfig(),
-    Logger(),
+    Logger(uiDateFormat: 'mm:ss'),
     SimpleDumbChatRepository(),
   ]);
   ErrorWidget.builder = (e) => PowerfulErrorWidget(error: e);

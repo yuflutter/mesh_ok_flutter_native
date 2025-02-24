@@ -43,7 +43,7 @@ class SocketClientSession {
     _socketSubscription = socket.listen((json) async {
       log.i('received message: "$json"');
       try {
-        onMessageSent(TextMessage.fromJson(json));
+        onMessageReceived(TextMessage.fromJson(json));
       } catch (e, s) {
         log.e(this, e, s);
         close();

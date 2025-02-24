@@ -1,4 +1,3 @@
-// Реализация сильных enum через type extension
 enum PeerStatus { available, invited, connected }
 
 extension PeerStatuses on PeerStatus {

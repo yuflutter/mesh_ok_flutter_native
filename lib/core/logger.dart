@@ -5,16 +5,21 @@ import 'package:flutter/foundation.dart';
 import '/app_config.dart';
 import 'global.dart';
 
+final _consoleDateFormat = DateFormat('dd.MM HH:mm:ss');
+
 /// Простейший in-memory логгер.
 class Logger with ChangeNotifier {
-  late final _maxLogsSaved = global<AppConfig>().maxLogNumber;
+  final String? uiDateFormat;
+  late final DateFormat? _uiDateFormat = (uiDateFormat?.isNotEmpty == true) ? DateFormat(uiDateFormat) : null;
 
   final List<_Log> _lastLogs = [];
+  late final _maxLogsSaved = global<AppConfig>().maxLogNumber;
+
+  Logger({this.uiDateFormat = 'HH:mm:ss'});
 
   /// Info
   void i(dynamic info, {bool consoleOnly = false}) {
     _addLog(_Log('', info.toString()), consoleOnly);
-    // _addLog(_Log('INFO ', info.toString()), consoleOnly);
   }
 
   /// Warning
@@ -47,11 +52,10 @@ class Logger with ChangeNotifier {
     }
   }
 
-  List<String> lastLogs({bool reversed = true, String dateFormat = 'dd.MM HH:mm:ss'}) {
-    final df = (dateFormat.isNotEmpty) ? DateFormat(dateFormat) : null;
+  List<String> lastLogs({bool reversed = true}) {
     final res = _lastLogs.map<String>((e) {
-      if (df != null) {
-        return '${e.level}[${df.format(e.when)}] ${e.what}';
+      if (_uiDateFormat != null) {
+        return '${e.level}[${_uiDateFormat.format(e.when)}] ${e.what}';
       } else {
         return '${e.level}${e.what}';
       }
@@ -69,7 +73,6 @@ class _Log {
   final String level;
   final DateTime when;
   final String what;
-  static final _consoleDateFormat = DateFormat('dd.MM HH:mm:ss');
 
   _Log(this.level, this.what) : when = DateTime.now();
 

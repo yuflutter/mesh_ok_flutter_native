@@ -1,5 +1,3 @@
-// Реализация сильных enum через static fields
-// смотри также ./archive и https://t.me/yugoflutter/2
 class PeerStatus {
   final num id;
   final String caption;
@@ -8,7 +6,7 @@ class PeerStatus {
 
   static const available = PeerStatus._(3, 'available');
   static const invited = PeerStatus._(1, 'invited');
-  static const connected = PeerStatus._(0, 'connected');
+  static const connected = PeerStatus._(0, 'paired');
 
   factory PeerStatus.fromId(num id) => switch (id) {
         3 => available,

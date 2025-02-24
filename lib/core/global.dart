@@ -19,13 +19,13 @@ class Global {
 /// Краткий синоним для Global.get()
 T global<T>() => Global.get<T>();
 
-/// Пример использования с полиморфизмом
+// Пример использования с полиморфизмом:
+class _AbstractUserSession {}
+
+class _MyUserSession extends _AbstractUserSession {}
+
 void exampleOfUseGlobal() {
   Global.put(_MyUserSession());
   print(global<_AbstractUserSession>());
   print(global<_MyUserSession>());
 }
-
-class _AbstractUserSession {}
-
-class _MyUserSession extends _AbstractUserSession {}

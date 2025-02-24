@@ -91,12 +91,13 @@ class _HomePageState extends State<HomePage> {
   void openChat() {
     const routeName = 'socket_chat';
     final socketChatCubit = context.read<P2pConnectorCubit>().state.socketChatCubit;
-    // if (socketChatCubit != null && ModalRoute.of(context)?.settings.name != routeName) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => ChatPage(socketChatCubit: socketChatCubit!),
-      settings: RouteSettings(name: routeName),
-    ));
-    // }
+    // TODO: canPop() это костыль, добавить явную проверку, что чат уже открыт!
+    if (socketChatCubit != null && !Navigator.of(context).canPop()) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => ChatPage(socketChatCubit: socketChatCubit),
+        settings: RouteSettings(name: routeName),
+      ));
+    }
   }
 
   // Ставим задержку для улучшения пользовательского опыта ))
