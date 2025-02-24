@@ -91,7 +91,7 @@ class _HomePageState extends State<HomePage> {
   void openChat() {
     const routeName = 'socket_chat';
     final socketChatCubit = context.read<P2pConnectorCubit>().state.socketChatCubit;
-    // TODO: canPop() это костыль, добавить явную проверку, что чат уже открыт!
+    // TODO: canPop() - это костыль, добавить явную проверку, что именно чат уже открыт!
     if (socketChatCubit != null && !Navigator.of(context).canPop()) {
       Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => ChatPage(socketChatCubit: socketChatCubit),

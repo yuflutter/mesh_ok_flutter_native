@@ -19,7 +19,7 @@ class MyStatusPanel extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (!forAppBar) Text('My device status:', style: headerTextStyle),
+            if (!forAppBar) Text('My status:', style: headerTextStyle),
             Padding(
               padding: EdgeInsets.fromLTRB(15, 0, 5, 10),
               child: Column(

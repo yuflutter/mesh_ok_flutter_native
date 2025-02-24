@@ -79,7 +79,7 @@ class SocketChatCubitHost extends SocketChatCubitAbstract {
       try {
         c.sendMessage(TextMessage(from: me.deviceName, text: text));
       } catch (e) {
-        err += 'e\n';
+        err += '$e\n';
       }
     }
     err = err.trim();

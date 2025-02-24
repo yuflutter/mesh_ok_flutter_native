@@ -38,6 +38,7 @@ class PeerTile extends StatelessWidget {
           ],
           child: ListTile(
             visualDensity: VisualDensity.compact,
+            contentPadding: EdgeInsets.zero,
             title: Text(peer.deviceName),
             subtitle: Text('${peer.all['primaryDeviceType']} / ${peer.all['deviceAddress']}'),
             trailing: Text(

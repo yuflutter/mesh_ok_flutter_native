@@ -6,8 +6,8 @@ import 'socket_chat_cubit_abstract.dart';
 
 class P2pConnectorState {
   final WifiP2pDevice? me;
-  final WifiP2PInfo? p2pInfo;
   final List<WifiP2pDevice> peers;
+  final WifiP2PInfo? p2pInfo;
   // final WifiP2PGroupInfo? p2pGroupInfo;
   final SocketChatCubitAbstract? socketChatCubit;
 
