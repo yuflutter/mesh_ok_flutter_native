@@ -4,23 +4,26 @@ import '/entity/text_message.dart';
 class SocketChatState {
   final SocketStatus socketStatus;
   final List<TextMessage> messages;
-  Object? error;
+  // одноразовый сигнал чтобы открыть чат:
+  final bool doOpenChat;
 
-  SocketChatState._({required this.socketStatus, required this.messages, this.error});
+  SocketChatState._({
+    this.socketStatus = const SocketStatusNotConnected(),
+    this.messages = const [],
+    this.doOpenChat = false,
+  });
 
-  factory SocketChatState.initial() => SocketChatState._(
-        socketStatus: SocketStatus.notConnected,
-        messages: [],
-      );
+  factory SocketChatState.initial() => SocketChatState._();
 
   SocketChatState copyWith({
     final SocketStatus? socketStatus,
-    final Object? error,
+    final List<TextMessage>? messages,
+    final bool? doOpenChat,
   }) =>
       SocketChatState._(
         socketStatus: socketStatus ?? this.socketStatus,
-        // Для добавления сообщений используем внутреннюю мутабельность стейта
-        messages: messages,
-        error: error ?? this.error,
+        messages: messages ?? this.messages,
+        // сбрасываем одноразовый сигнал при следующем копировании:
+        doOpenChat: doOpenChat ?? false,
       );
 }

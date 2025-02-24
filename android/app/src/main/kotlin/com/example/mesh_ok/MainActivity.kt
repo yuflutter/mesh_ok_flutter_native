@@ -155,6 +155,6 @@ class MainActivity : FlutterActivity() {
     public override fun onPause() {
         log("onPause()")
         super.onPause()
-        activity.unregisterReceiver(Global.p2pController!!.broadcastReceiver)
+//        activity.unregisterReceiver(Global.p2pController!!.broadcastReceiver)
     }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/services.dart';
-import 'package:mesh_ok/entity/wifi_p2p_device.dart';
 
 import '/core/global.dart';
 import '/core/logger.dart';
+import '/entity/wifi_p2p_device.dart';
 
 const _androidChannelName = "WifiP2pMethodChannel";
 

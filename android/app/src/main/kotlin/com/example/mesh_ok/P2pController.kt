@@ -222,7 +222,7 @@ class P2pController(
                     } else {
                         onP2pInfoChanged(errResult("Disconnected"))
                     }
-                    discoverPeers()
+                    discoverPeers() // возобновляем поиск пиров
                 }
 
                 WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {

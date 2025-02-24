@@ -14,29 +14,24 @@ import 'peer_tile.dart';
 import 'chat_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Future initFuture;
+
+  const HomePage({super.key, required this.initFuture});
 
   @override
   createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  late final Future _initFuture;
   Future _refreshFuture = Future.value();
-
-  @override
-  void initState() {
-    _initFuture = context.read<P2pConnectorCubit>().init();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return SimpleFutureBuilder(
-      future: _initFuture,
+      future: widget.initFuture,
       builder: (context, _) {
         return BlocConsumer<P2pConnectorCubit, P2pConnectorState>(
-          builder: (context, state) {
+          builder: (context, p2pState) {
             return SafeArea(
               child: Scaffold(
                 body: Padding(
@@ -50,7 +45,11 @@ class _HomePageState extends State<HomePage> {
                           Text('Discovered peers:', style: headerTextStyle),
                           Expanded(
                             flex: 2,
-                            child: ListView(children: [...state.peers.map((peer) => PeerTile(peer: peer))]),
+                            child: ListView(
+                              children: [
+                                ...p2pState.peers.map((peer) => PeerTile(peer: peer)),
+                              ],
+                            ),
                           ),
                           SizedBox(height: 3),
                           Expanded(flex: 3, child: LoggerWidget()),
@@ -66,22 +65,22 @@ class _HomePageState extends State<HomePage> {
                 bottomNavigationBar: BottomNavigationBar(
                   onTap: (i) => switch (i) {
                     0 => global<Logger>().clear(),
-                    1 => _refresh(),
+                    1 => _refreshAll(),
+                    2 => openChat(),
                     _ => null,
                   },
                   items: [
                     BottomNavigationBarItem(label: 'Clear log', icon: Icon(Icons.clear)),
                     BottomNavigationBarItem(label: 'Refresh all', icon: Icon(Icons.refresh)),
+                    BottomNavigationBarItem(label: 'Open chat', icon: Icon(Icons.chat)),
                   ],
                 ),
               ),
             );
           },
           listener: (context, state) {
-            if (state.doOpenSocketChat != null) {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => ChatPage(socketChatCubit: state.doOpenSocketChat!)));
+            if (state.doOpenChat) {
+              openChat();
             }
           },
         );
@@ -89,8 +88,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void openChat() {
+    const routeName = 'socket_chat';
+    final socketChatCubit = context.read<P2pConnectorCubit>().state.socketChatCubit;
+    // if (socketChatCubit != null && ModalRoute.of(context)?.settings.name != routeName) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ChatPage(socketChatCubit: socketChatCubit!),
+      settings: RouteSettings(name: routeName),
+    ));
+    // }
+  }
+
   // Ставим задержку для улучшения пользовательского опыта ))
-  void _refresh() {
+  void _refreshAll() {
     setState(() {
       _refreshFuture = () async {
         await context.read<P2pConnectorCubit>().refreshAll();

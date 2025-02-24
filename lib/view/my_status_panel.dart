@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '/core/theme_elements.dart';
 import '/entity/device_role.dart';
-import '/entity/socket_status.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/model/p2p_connector_state.dart';
 

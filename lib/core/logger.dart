@@ -7,7 +7,7 @@ import 'global.dart';
 
 /// Простейший in-memory логгер.
 class Logger with ChangeNotifier {
-  late final _maxLogsSaved = global<AppConfig>().maxLogsSaved;
+  late final _maxLogsSaved = global<AppConfig>().maxLogNumber;
 
   final List<_Log> _lastLogs = [];
 
