@@ -57,7 +57,9 @@ class _ChatPageState extends State<ChatPage> {
                                   title: (m.from == connector.me?.deviceName)
                                       ? Container(
                                           alignment: Alignment.centerRight,
-                                          child: Text(m.text),
+                                          child: RichText(
+                                            text: TextSpan(text: m.text),
+                                          ),
                                         )
                                       : Container(
                                           alignment: Alignment.centerLeft,

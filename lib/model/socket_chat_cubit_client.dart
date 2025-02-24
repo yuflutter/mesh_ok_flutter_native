@@ -28,7 +28,7 @@ class SocketChatCubitClient extends SocketChatCubitAbstract {
       try {
         socket = await WebSocket.connect(url);
         log.i('connected');
-        emit(state.copyWith(socketStatus: SocketStatusConnected()));
+        emit(state.copyWith(socketStatus: SocketStatusConnectedAsClient()));
 
         _clientSession = SocketClientSession(
           socket: socket,
@@ -58,7 +58,7 @@ class SocketChatCubitClient extends SocketChatCubitAbstract {
 
   @override
   void sendMessage(String text) {
-    if (_clientSession != null && state.socketStatus is SocketStatusConnected) {
+    if (_clientSession != null && state.socketStatus is SocketStatusConnectedAsClient) {
       _clientSession!.sendMessage(TextMessage(from: me.deviceName, text: text));
     } else {
       throw 'no connection to host';

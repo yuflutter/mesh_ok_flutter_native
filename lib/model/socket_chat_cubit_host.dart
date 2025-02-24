@@ -45,13 +45,13 @@ class SocketChatCubitHost extends SocketChatCubitAbstract {
                   emit(state.copyWith(
                     socketStatus: (_clientSessions.isEmpty)
                         ? SocketStatusWaitingIncoming()
-                        : SocketStatusConnected(_clientSessions.length),
+                        : SocketStatusConnectedAsHost(_clientSessions.length),
                   ));
                 },
               );
 
               _clientSessions.add(client);
-              emit(state.copyWith(socketStatus: SocketStatusConnected(_clientSessions.length)));
+              emit(state.copyWith(socketStatus: SocketStatusConnectedAsHost(_clientSessions.length)));
               sendMessage('сonnected');
             }
           } catch (e, s) {
