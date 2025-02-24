@@ -42,54 +42,82 @@ class _ChatPageState extends State<ChatPage> {
                   ],
                 ),
                 body: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: ListView(
-                            children: [
-                              ...chatState.messages.reversed.map(
-                                (m) => ListTile(
-                                  visualDensity: VisualDensity.compact,
-                                  title: (m.from == connector.me?.deviceName)
-                                      ? Container(
-                                          alignment: Alignment.centerRight,
-                                          child: RichText(
-                                            text: TextSpan(text: m.text),
-                                          ),
-                                        )
-                                      : Container(
-                                          alignment: Alignment.centerLeft,
-                                          child: RichText(
-                                            text: TextSpan(
-                                              text: '${m.from}: ',
-                                              style: TextStyle(color: Colors.red),
-                                              children: [
-                                                TextSpan(
-                                                  text: m.text,
-                                                  style: TextStyle(color: Colors.white),
-                                                )
-                                              ],
+                  child: Stack(
+                    alignment: AlignmentDirectional.bottomEnd,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: ListView(
+                                children: [
+                                  ...chatState.messages.reversed.map(
+                                    (m) => ListTile(
+                                      visualDensity: VisualDensity.compact,
+                                      contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                      title: (m.from == connector.me?.deviceName)
+                                          ? Padding(
+                                              padding: EdgeInsets.only(left: MediaQuery.of(context).size.width / 4),
+                                              child: RichText(
+                                                text: TextSpan(
+                                                  text: 'me: ',
+                                                  style: TextStyle(color: Colors.red),
+                                                  children: [
+                                                    TextSpan(
+                                                      text: m.text,
+                                                      style: TextStyle(color: Colors.white),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          : Container(
+                                              child: RichText(
+                                                text: TextSpan(
+                                                  text: '${m.from}: ',
+                                                  style: TextStyle(color: Colors.red),
+                                                  children: [
+                                                    TextSpan(
+                                                      text: m.text,
+                                                      style: TextStyle(color: Colors.white),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                            TextFormField(
+                              controller: _msgController,
+                              // onFieldSubmitted: _sendMessage,
+                              minLines: 1,
+                              maxLines: 5,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.fromLTRB(0, 0, 40, 0),
+                              ),
+                              // autofocus: true,
+                            ),
+                            SizedBox(height: 8),
+                            if (MediaQuery.of(context).viewInsets.bottom == 0) Expanded(child: LoggerWidget()),
+                          ],
+                        ),
+                      ),
+                      if (MediaQuery.of(context).viewInsets.bottom != 0)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 17),
+                          child: FloatingActionButton.small(
+                            onPressed: _sendMessage,
+                            tooltip: 'Send message',
+                            child: Icon(Icons.send),
                           ),
                         ),
-                        TextFormField(
-                          controller: _msgController,
-                          onFieldSubmitted: _sendMessage,
-                          // autofocus: true,
-                        ),
-                        SizedBox(height: 8),
-                        if (MediaQuery.of(context).viewInsets.bottom == 0) Expanded(child: LoggerWidget()),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               );
@@ -100,9 +128,9 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  void _sendMessage(String msg) {
+  void _sendMessage() {
     try {
-      widget.socketChatCubit.sendMessage(msg);
+      widget.socketChatCubit.sendMessage(_msgController.text);
       _msgController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

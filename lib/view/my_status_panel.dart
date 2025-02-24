@@ -19,7 +19,7 @@ class MyStatusPanel extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (!forAppBar) Text('My status:', style: headerTextStyle),
+            if (!forAppBar) Text('My device status:', style: headerTextStyle),
             Padding(
               padding: EdgeInsets.fromLTRB(15, 0, 5, 10),
               child: Column(
@@ -31,7 +31,7 @@ class MyStatusPanel extends StatelessWidget {
                     if (!forAppBar)
                       RichText(
                         text: TextSpan(
-                          text: 'My device name: ',
+                          text: 'Device name: ',
                           children: [
                             TextSpan(
                               text: state.me!.deviceName,
@@ -47,7 +47,7 @@ class MyStatusPanel extends StatelessWidget {
                     else ...[
                       RichText(
                         text: TextSpan(
-                          text: 'My device role: ',
+                          text: 'Device role: ',
                           children: [
                             TextSpan(
                               text: state.deviceRole.caption,
