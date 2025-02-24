@@ -59,8 +59,9 @@ class _ChatPageState extends State<ChatPage> {
                                       visualDensity: VisualDensity.compact,
                                       contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
                                       title: (m.from == connector.me?.deviceName)
-                                          ? Padding(
+                                          ? Container(
                                               padding: EdgeInsets.only(left: MediaQuery.of(context).size.width / 4),
+                                              alignment: AlignmentDirectional.centerEnd,
                                               child: RichText(
                                                 text: TextSpan(
                                                   text: 'me: ',
