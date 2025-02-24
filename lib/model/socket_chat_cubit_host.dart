@@ -74,22 +74,20 @@ class SocketChatCubitHost extends SocketChatCubitAbstract {
   @override
   void sendMessage(String text) {
     if (_clientSessions.isEmpty) throw 'no clients connected';
-
     var err = '';
-    for (final c in _clientSessions) {
+    for (final c in List.from(_clientSessions)) {
       try {
         c.sendMessage(TextMessage(from: me.deviceName, text: text));
       } catch (e) {
         err += 'e\n';
       }
     }
-
     err = err.trim();
     if (err.isNotEmpty) throw err;
   }
 
   void _spreadMessage(TextMessage msg, {required WebSocket exceptMe}) {
-    for (final c in _clientSessions) {
+    for (final c in List.from(_clientSessions)) {
       if (c.socket != exceptMe) {
         c.sendMessage(msg);
       }
@@ -98,7 +96,7 @@ class SocketChatCubitHost extends SocketChatCubitAbstract {
 
   @override
   Future<void> close() {
-    for (final c in _clientSessions) {
+    for (final c in List.from(_clientSessions)) {
       c.close();
     }
     _httpServerSubscription?.cancel();
