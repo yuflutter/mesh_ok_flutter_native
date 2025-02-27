@@ -34,7 +34,6 @@ class SocketChatCubitClient extends SocketChatCubitStub {
 
         _clientSession = SocketClientSession(
           socket: socket,
-          onMessageSent: (m) => addMessage(m),
           onMessageReceived: (m) {
             addMessage(m);
             emit(state.copyWith(doOpenChat: true));
@@ -61,7 +60,9 @@ class SocketChatCubitClient extends SocketChatCubitStub {
   @override
   void sendMessage(String text) {
     if (_clientSession != null && state.socketStatus is SocketStatusConnectedAsClient) {
-      _clientSession!.sendMessage(TextMessage(from: myDevice.deviceName, text: text));
+      final msg = TextMessage(from: myDevice.deviceName, text: text);
+      _clientSession!.sendMessage(msg);
+      addMessage(msg);
     } else {
       throw 'no connection to host';
     }

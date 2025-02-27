@@ -5,7 +5,7 @@ import '/core/theme_elements.dart';
 import '/entity/device_role.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/model/p2p_connector_state.dart';
-import '../model/socket_chat_cubit_stub.dart';
+import '/model/socket_chat_cubit_stub.dart';
 import '/model/socket_chat_state.dart';
 
 class MyStatusPanel extends StatelessWidget {

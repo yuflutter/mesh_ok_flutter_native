@@ -9,7 +9,7 @@ import '/core/logger_widget.dart';
 import '/core/simple_future_builder.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/model/p2p_connector_state.dart';
-import '../model/socket_chat_cubit_stub.dart';
+import '/model/socket_chat_cubit_stub.dart';
 import '/model/socket_chat_state.dart';
 import 'my_status_panel.dart';
 import 'peer_tile.dart';

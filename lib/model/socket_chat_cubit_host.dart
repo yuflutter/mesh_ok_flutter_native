@@ -36,10 +36,9 @@ class SocketChatCubitHost extends SocketChatCubitStub {
 
               final client = SocketClientSession(
                 socket: socket,
-                onMessageSent: (m) => addMessage(m),
                 onMessageReceived: (m) {
                   addMessage(m);
-                  _spreadMessage(m, exceptMe: socket);
+                  _spreadMessage(m, exceptAuthor: socket);
                   emit(state.copyWith(doOpenChat: true));
                 },
                 onSocketError: (e) {
@@ -74,24 +73,28 @@ class SocketChatCubitHost extends SocketChatCubitStub {
   }
 
   @override
-  @override
   void sendMessage(String text) {
     if (_clientSessions.isEmpty) throw 'no clients connected';
-    var err = '';
-    for (final c in List.from(_clientSessions)) {
+    final msg = TextMessage(from: myDevice.deviceName, text: text);
+    final clients = List<SocketClientSession>.from(_clientSessions);
+    final errors = [];
+    for (final c in clients) {
       try {
-        c.sendMessage(TextMessage(from: myDevice.deviceName, text: text));
+        c.sendMessage(msg);
       } catch (e) {
-        err += '$e\n';
+        errors.add(e);
       }
     }
-    err = err.trim();
-    if (err.isNotEmpty) throw err;
+    if (errors.length == clients.length) {
+      throw errors.join('\n');
+    } else {
+      addMessage(msg);
+    }
   }
 
-  void _spreadMessage(TextMessage msg, {required WebSocket exceptMe}) {
-    for (final c in List.from(_clientSessions)) {
-      if (c.socket != exceptMe) {
+  void _spreadMessage(TextMessage msg, {required WebSocket exceptAuthor}) {
+    for (final c in List<SocketClientSession>.from(_clientSessions)) {
+      if (c.socket != exceptAuthor) {
         c.sendMessage(msg);
       }
     }
@@ -99,7 +102,7 @@ class SocketChatCubitHost extends SocketChatCubitStub {
 
   @override
   Future<void> close() {
-    for (final c in List.from(_clientSessions)) {
+    for (final c in List<SocketClientSession>.from(_clientSessions)) {
       c.close();
     }
     _httpServerSubscription?.cancel();

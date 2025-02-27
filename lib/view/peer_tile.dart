@@ -25,11 +25,6 @@ class PeerTile extends StatelessWidget {
               onTap: () => _connectToPeer(context, peer),
               child: Text('Connect to peer'),
             ),
-            // PopupMenuItem(
-            //   enabled: (peer.status == PeerStatus.connected && state.p2pInfo?.isConnected == true),
-            //   onTap: () => _openChat(context, peer),
-            //   child: Text('Open chat'),
-            // ),
             PopupMenuItem(
               enabled: (peer.status != PeerStatus.available),
               onTap: () => _disconnectMe(context, state.p2pInfo),
@@ -65,14 +60,10 @@ class PeerTile extends StatelessWidget {
     );
   }
 
-  // void _openChat(BuildContext context, WifiP2pDevice peer) {
-  //   context.read<P2pConnectorCubit>().doOpenChat();
-  // }
-
   void _disconnectMe(BuildContext context, WifiP2PInfo? p2pInfo) {
     showConfirmDialog(
       context,
-      title: 'Disconnect from ${peer.deviceName}?',
+      title: 'Disconnect from group?',
       // title: (p2pInfo?.isGroupOwner == true) ? 'Remove group?' : 'Disconnect from group?',
       action: context.read<P2pConnectorCubit>().disconnectMe,
     );

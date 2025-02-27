@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '/app_config.dart';
 import '/core/global.dart';
 import '/core/logger.dart';
-import 'core/power_error_widget.dart';
+import '/core/power_error_widget.dart';
 import '/data/chat_repository.dart';
 import '/model/p2p_connector_cubit.dart';
 import '/view/home_page.dart';

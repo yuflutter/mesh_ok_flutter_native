@@ -7,7 +7,6 @@ import '/entity/text_message.dart';
 
 class SocketClientSession {
   final WebSocket socket;
-  void Function(TextMessage) onMessageSent;
   void Function(TextMessage) onMessageReceived;
   void Function(dynamic error) onSocketError;
 
@@ -15,7 +14,6 @@ class SocketClientSession {
 
   SocketClientSession({
     required this.socket,
-    required this.onMessageSent,
     required this.onMessageReceived,
     required this.onSocketError,
   }) {
@@ -28,7 +26,6 @@ class SocketClientSession {
         throw 'can\'t send a message, socket is ${_socketReadyState(socket.readyState)}';
       } else {
         socket.add(msg.toJson());
-        onMessageSent(msg);
       }
     } catch (e, s) {
       global<Logger>().e(this, e, s);
