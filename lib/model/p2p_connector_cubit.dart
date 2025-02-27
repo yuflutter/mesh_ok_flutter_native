@@ -38,11 +38,15 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   }
 
   Future<void> refreshAll() async {
-    await Future.wait([
-      _platform.requestConnectionInfo(),
-      _platform.discoverPeers(),
-      // _getGroupInfo(),
-    ]);
+    try {
+      await Future.wait([
+        _platform.requestConnectionInfo(),
+        _platform.discoverPeers(),
+        // _getGroupInfo(),
+      ]);
+    } catch (e, s) {
+      global<Logger>().e(this, e, s);
+    }
   }
 
   void _onPeersDiscovered(List peersJson) {

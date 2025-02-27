@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mesh_ok/core/global.dart';
+import 'package:mesh_ok/core/logger.dart';
 
 import '/core/theme_elements.dart';
 
@@ -38,11 +40,7 @@ class _DialogState extends State<_Dialog> {
               child: Text('Cancel'),
             ),
             TextButton(
-              onPressed: () async {
-                setState(() => _processing = true);
-                final result = await widget.action();
-                if (context.mounted) Navigator.of(context).pop(result);
-              },
+              onPressed: _do,
               child: Text('OK'),
             ),
           ],
@@ -50,5 +48,16 @@ class _DialogState extends State<_Dialog> {
         if (_processing) Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ],
     );
+  }
+
+  void _do() async {
+    try {
+      setState(() => _processing = true);
+      final result = await widget.action();
+      if (context.mounted) Navigator.of(context).pop(result);
+    } catch (e, s) {
+      global<Logger>().e(this, e, s);
+      if (context.mounted) Navigator.of(context).pop();
+    }
   }
 }
