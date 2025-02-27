@@ -6,15 +6,17 @@ import '/core/global.dart';
 import '/core/logger.dart';
 import '/entity/socket_status.dart';
 import '/entity/text_message.dart';
-import 'socket_chat_cubit_abstract.dart';
+import '/entity/wifi_p2p_info.dart';
+import 'socket_chat_cubit_stub.dart';
 import 'socket_client_session.dart';
 
-class SocketChatCubitHost extends SocketChatCubitAbstract {
+class SocketChatCubitHost extends SocketChatCubitStub {
+  final WifiP2PInfo p2pInfo;
   HttpServer? _httpServer;
   StreamSubscription? _httpServerSubscription;
   final List<SocketClientSession> _clientSessions = [];
 
-  SocketChatCubitHost({required super.me, required super.p2pInfo});
+  SocketChatCubitHost({required super.myDevice, required this.p2pInfo});
 
   @override
   Future<void> init() async {
@@ -72,12 +74,13 @@ class SocketChatCubitHost extends SocketChatCubitAbstract {
   }
 
   @override
+  @override
   void sendMessage(String text) {
     if (_clientSessions.isEmpty) throw 'no clients connected';
     var err = '';
     for (final c in List.from(_clientSessions)) {
       try {
-        c.sendMessage(TextMessage(from: me.deviceName, text: text));
+        c.sendMessage(TextMessage(from: myDevice.deviceName, text: text));
       } catch (e) {
         err += '$e\n';
       }

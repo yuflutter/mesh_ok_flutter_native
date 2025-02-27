@@ -8,7 +8,11 @@ class WifiP2PInfo extends PlatformResult {
 
   bool get isConnected => groupFormed && (groupOwnerAddress?.isNotEmpty == true);
 
-  DeviceRole get deviceRole => (isGroupOwner) ? DeviceRole.host : DeviceRole.client;
+  DeviceRole get deviceRole => (groupFormed)
+      ? (isGroupOwner)
+          ? DeviceRole.host
+          : DeviceRole.client
+      : DeviceRole.notConnected;
 
   WifiP2PInfo.fromJson(super.json) : super.fromJson() {
     if (isError) {

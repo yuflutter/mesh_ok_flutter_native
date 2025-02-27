@@ -6,20 +6,22 @@ import '/core/global.dart';
 import '/core/logger.dart';
 import '/entity/socket_status.dart';
 import '/entity/text_message.dart';
-import 'socket_chat_cubit_abstract.dart';
+import '/entity/wifi_p2p_info.dart';
+import 'socket_chat_cubit_stub.dart';
 import 'socket_client_session.dart';
 
-class SocketChatCubitClient extends SocketChatCubitAbstract {
+class SocketChatCubitClient extends SocketChatCubitStub {
+  final WifiP2PInfo p2pInfo;
   SocketClientSession? _clientSession;
 
-  SocketChatCubitClient({required super.me, required super.p2pInfo});
+  SocketChatCubitClient({required super.myDevice, required this.p2pInfo});
 
   @override
   Future<void> init() async {
     final log = global<Logger>();
     final port = global<AppConfig>().websocketPort;
 
-    final url = 'ws://${p2pInfo.groupOwnerAddress}:$port/ws?me=${me.deviceName}';
+    final url = 'ws://${p2pInfo.groupOwnerAddress}:$port/ws?me=${myDevice.deviceName}';
     log.i('connecting to $url ...');
     emit(state.copyWith(socketStatus: SocketStatusConnectingToHost()));
 
@@ -59,7 +61,7 @@ class SocketChatCubitClient extends SocketChatCubitAbstract {
   @override
   void sendMessage(String text) {
     if (_clientSession != null && state.socketStatus is SocketStatusConnectedAsClient) {
-      _clientSession!.sendMessage(TextMessage(from: me.deviceName, text: text));
+      _clientSession!.sendMessage(TextMessage(from: myDevice.deviceName, text: text));
     } else {
       throw 'no connection to host';
     }

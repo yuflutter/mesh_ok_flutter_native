@@ -7,6 +7,12 @@ class SocketChatState {
   // одноразовый сигнал чтобы открыть чат:
   final bool doOpenChat;
 
+  bool get isPossibleToSendMessage => switch (socketStatus) {
+        SocketStatusConnectedAsClient() => true,
+        SocketStatusConnectedAsHost() => true,
+        _ => false,
+      };
+
   SocketChatState._({
     this.socketStatus = const SocketStatusNotConnected(),
     this.messages = const [],
