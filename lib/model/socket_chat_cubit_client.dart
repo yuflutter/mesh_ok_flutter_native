@@ -44,7 +44,7 @@ class SocketChatCubitClient extends SocketChatCubitStub {
             init();
           },
         );
-        sendMessage('сonnected');
+        _clientSession!.sendMessage(TextMessage(from: myDevice.deviceName, text: 'connected'));
         break;
       } catch (e) {
         log.w(e);

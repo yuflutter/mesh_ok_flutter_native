@@ -34,7 +34,7 @@ class SocketChatCubitHost extends SocketChatCubitStub {
               final socket = await WebSocketTransformer.upgrade(req);
               log.i('connection received from address ${req.connectionInfo?.remoteAddress}');
 
-              final client = SocketClientSession(
+              final clientSession = SocketClientSession(
                 socket: socket,
                 onMessageReceived: (m) {
                   addMessage(m);
@@ -50,10 +50,9 @@ class SocketChatCubitHost extends SocketChatCubitStub {
                   ));
                 },
               );
-
-              _clientSessions.add(client);
+              _clientSessions.add(clientSession);
               emit(state.copyWith(socketStatus: SocketStatusConnectedAsHost(_clientSessions.length)));
-              sendMessage('сonnected');
+              clientSession.sendMessage(TextMessage(from: myDevice.deviceName, text: 'connected'));
             }
           } catch (e, s) {
             log.e(this, e, s);

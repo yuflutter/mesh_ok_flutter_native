@@ -67,8 +67,9 @@ class P2pController(
         flutterChannel.invokeMethod("onP2pInfoChanged", p2pInfo)
 
     fun init(result: MethodChannel.Result) {
-        // Важно запросить информацию об устройстве до срабатывания бродкастов
-        requestDeviceInfo(result)
+        // Здесь что-то было, но потом ушло в другие методы.
+        // Последовательность инициализации пересена на флаттер.
+        result.success(okResult)
     }
 
     @SuppressLint("MissingPermission")
