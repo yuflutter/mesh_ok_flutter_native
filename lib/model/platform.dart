@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '/core/global.dart';
 import '/core/logger.dart';
 import '/entity/wifi_p2p_device.dart';
+import '/entity/wifi_p2p_group.dart';
 
 const _androidChannelName = "WifiP2pMethodChannel";
 
@@ -31,11 +32,13 @@ class Platform {
     });
   }
 
-  Future<WifiP2pDevice> init() async => WifiP2pDevice.fromJson(await _dowl('init'));
-  Future discoverPeers() => _dowl('discoverPeers');
-  Future requestConnectionInfo() => _dowl('requestConnectionInfo');
-  Future connectPeer(WifiP2pDevice peer) => _dowl('connectPeer', peer.deviceAddress);
-  Future disconnectMe() => _dowl('disconnectMe');
+  Future<void> init() => _dowl('init');
+  Future<WifiP2pDevice> requestDeviceInfo() async => WifiP2pDevice.fromJson(await _dowl('requestDeviceInfo'));
+  Future<void> requestConnectionInfo() => _dowl('requestConnectionInfo');
+  Future<WifiP2PGroup?> requestGroupInfo() async => WifiP2PGroup.fromNullableJson(await _dowl('requestGroupInfo'));
+  Future<void> discoverPeers() => _dowl('discoverPeers');
+  Future<void> connectPeer(WifiP2pDevice peer) => _dowl('connectPeer', peer.deviceAddress);
+  Future<void> disconnectMe() => _dowl('disconnectMe');
 
   // Выполняет функцию и логирует её вызов и результат (do with log)
   Future _dowl(String methodName, [dynamic arguments]) async {

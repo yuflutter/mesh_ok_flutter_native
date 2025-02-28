@@ -46,8 +46,10 @@ class P2pController(
         try {
             when (call.method) {
                 "init" -> init(result)
-                "discoverPeers" -> discoverPeers(result)
+                "requestDeviceInfo" -> requestDeviceInfo(result)
                 "requestConnectionInfo" -> requestConnectionInfo(result)
+                "requestGroupInfo" -> requestGroupInfo(result)
+                "discoverPeers" -> discoverPeers(result)
                 "connectPeer" -> connectPeer(call.arguments as String, result)
                 "disconnectMe" -> disconnectMe(result)
                 else -> result.notImplemented()
@@ -64,12 +66,60 @@ class P2pController(
     private fun onP2pInfoChanged(p2pInfo: String) =
         flutterChannel.invokeMethod("onP2pInfoChanged", p2pInfo)
 
-    @SuppressLint("MissingPermission")
     fun init(result: MethodChannel.Result) {
+        // Тут что-то было, но теперь перенесено в отдельные методы
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestDeviceInfo(result: MethodChannel.Result) {
         try {
             p2pManager.requestDeviceInfo(p2pChannel) { deviceInfo ->
                 log("WifiP2pDevice: $deviceInfo")
                 result.success(deviceInfo.convertObjectToJson())
+            }
+        } catch (e: Throwable) {
+            loge(e)
+            result.error("$e", null, null)
+        }
+    }
+
+    private fun requestConnectionInfo(result: MethodChannel.Result? = null) {
+        try {
+            p2pManager.requestConnectionInfo(p2pChannel) { p2pInfo ->
+                log("WifiP2pInfo: $p2pInfo")
+                // After the group negotiation, we can determine the group owner (server).
+                if (p2pInfo.groupFormed && p2pInfo.isGroupOwner) {
+                    // Do whatever tasks are specific to the group owner.
+                    // One common case is creating a group owner thread and accepting
+                    // incoming connections.
+                } else if (p2pInfo.groupFormed) {
+                    // The other device acts as the peer (client). In this case,
+                    // you'll want to create a peer thread that connects
+                    // to the group owner.
+                }
+                currentP2pInfo = p2pInfo
+//                currentNetworkConnectionInfo = NetworkConnectionInfo(
+//                    p2pInfo = p2pInfo,
+//                    wifiInfo = wifiManager.connectionInfo,
+//                    ssid = wifiManager.connectionInfo.ssid,
+//                )
+                onP2pInfoChanged(currentP2pInfo.convertObjectToJson())
+                result?.success(okResult)
+            }
+        } catch (e: Throwable) {
+            loge(e)
+            result?.error("$e", null, null)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestGroupInfo(result: MethodChannel.Result) {
+        try {
+            p2pManager.requestGroupInfo(p2pChannel) { groupInfo ->
+                log("WifiP2pGroup: $groupInfo")
+                // TODO: Здесь сериализация почему-то не срабатывает, получаем пустой Map, доделать.
+                log("WifiP2pGroupDto: ${groupInfo.convertObjectToJson()}")
+                result.success(groupInfo.convertObjectToJson())
             }
         } catch (e: Throwable) {
             loge(e)
@@ -150,35 +200,6 @@ class P2pController(
         } catch (e: Throwable) {
             loge(e)
             result.error("$e", null, null)
-        }
-    }
-
-    private fun requestConnectionInfo(result: MethodChannel.Result? = null) {
-        try {
-            p2pManager.requestConnectionInfo(p2pChannel) { p2pInfo ->
-                log("WifiP2pInfo: $p2pInfo")
-                // After the group negotiation, we can determine the group owner (server).
-                if (p2pInfo.groupFormed && p2pInfo.isGroupOwner) {
-                    // Do whatever tasks are specific to the group owner.
-                    // One common case is creating a group owner thread and accepting
-                    // incoming connections.
-                } else if (p2pInfo.groupFormed) {
-                    // The other device acts as the peer (client). In this case,
-                    // you'll want to create a peer thread that connects
-                    // to the group owner.
-                }
-                currentP2pInfo = p2pInfo
-//                currentNetworkConnectionInfo = NetworkConnectionInfo(
-//                    p2pInfo = p2pInfo,
-//                    wifiInfo = wifiManager.connectionInfo,
-//                    ssid = wifiManager.connectionInfo.ssid,
-//                )
-                onP2pInfoChanged(currentP2pInfo.convertObjectToJson())
-                result?.success(okResult)
-            }
-        } catch (e: Throwable) {
-            loge(e)
-            result?.error("$e", null, null)
         }
     }
 

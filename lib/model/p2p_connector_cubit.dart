@@ -18,7 +18,6 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   late final Platform _platform;
 
   SocketChatCubitStub? _socketChatCubit;
-  StreamSubscription? _chatStateSubscription;
 
   P2pConnectorCubit() : super(P2pConnectorState.initial()) {
     _platform = Platform(
@@ -29,7 +28,6 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
   Future<void> init() async {
     try {
-      emit(state.copyWith(myDevice: await _platform.init()));
       await refreshAll();
       WidgetsBinding.instance.addObserver(this);
     } catch (e, s) {
@@ -40,7 +38,9 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   Future<void> refreshAll() async {
     try {
       await Future.wait([
+        _platform.requestDeviceInfo().then((d) => emit(state.copyWith(myDevice: d))),
         _platform.requestConnectionInfo(),
+        _platform.requestGroupInfo().then((g) => emit(state.copyWith(p2pGroup: g))),
         _platform.discoverPeers(),
         // _getGroupInfo(),
       ]);
@@ -65,7 +65,6 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   void _onP2pInfoChanged(String p2pInfoJson) async {
     final log = global<Logger>();
     try {
-      await _chatStateSubscription?.cancel();
       await _socketChatCubit?.close();
 
       log.i('P2PInfo: $p2pInfoJson');
@@ -79,6 +78,8 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
         ..init();
       log.i('created $_socketChatCubit');
       emit(state.copyWith(p2pInfo: p2pInfo, socketChatCubit: _socketChatCubit));
+
+      _platform.requestGroupInfo().then((g) => emit(state.copyWith(p2pGroup: g)));
 
       // SocketStatus? oldSocketStatus;
       // _chatStateSubscription = _socketChatCubit!.stream.listen(
@@ -110,7 +111,6 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
   @override
   Future<void> close() {
     WidgetsBinding.instance.removeObserver(this);
-    _chatStateSubscription?.cancel();
     _socketChatCubit?.close();
     _platform.close();
     return super.close();
