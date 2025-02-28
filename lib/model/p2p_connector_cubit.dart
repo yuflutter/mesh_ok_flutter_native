@@ -28,6 +28,7 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
   Future<void> init() async {
     try {
+      await _platform.init();
       await refreshAll();
       WidgetsBinding.instance.addObserver(this);
     } catch (e, s) {
@@ -37,12 +38,12 @@ class P2pConnectorCubit extends Cubit<P2pConnectorState> with WidgetsBindingObse
 
   Future<void> refreshAll() async {
     try {
+      // Пока не обновили информацию об устройстве - ничего дальше не запрашиваем
+      await _platform.requestDeviceInfo().then((d) => emit(state.copyWith(myDevice: d)));
       await Future.wait([
-        _platform.requestDeviceInfo().then((d) => emit(state.copyWith(myDevice: d))),
         _platform.requestConnectionInfo(),
         _platform.requestGroupInfo().then((g) => emit(state.copyWith(p2pGroup: g))),
         _platform.discoverPeers(),
-        // _getGroupInfo(),
       ]);
     } catch (e, s) {
       global<Logger>().e(this, e, s);

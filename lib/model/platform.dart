@@ -33,7 +33,7 @@ class Platform {
   }
 
   Future<void> init() => _dowl('init');
-  Future<WifiP2pDevice> requestDeviceInfo() async => WifiP2pDevice.fromJson(await _dowl('requestDeviceInfo'));
+  Future<WifiP2pDevice?> requestDeviceInfo() async => WifiP2pDevice.fromNullableJson(await _dowl('requestDeviceInfo'));
   Future<void> requestConnectionInfo() => _dowl('requestConnectionInfo');
   Future<WifiP2PGroup?> requestGroupInfo() async => WifiP2PGroup.fromNullableJson(await _dowl('requestGroupInfo'));
   Future<void> discoverPeers() => _dowl('discoverPeers');
